@@ -1,0 +1,21 @@
+{
+  "name": "proyecto-boda-catolica",
+  "version": "1.0.0",
+  "description": "Sistema web integral para gestión de pendientes, ahorro en pareja, control presupuestario y dashboard analítico para Boda Católica",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "boda",
+    "wedding",
+    "presupuesto",
+    "kanban",
+    "dashboard",
+    "power-bi",
+    "chartjs"
+  ],
+  "author": "Antigravity Senior Full-Stack Architect",
+  "license": "MIT"
+}
