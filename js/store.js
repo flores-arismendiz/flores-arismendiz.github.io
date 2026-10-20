@@ -7,43 +7,17 @@ class Store {
   constructor() {
     this.subscribers = [];
     this.state = this.loadState();
+    this.localState = JSON.parse(JSON.stringify(this.state));
+    this.cloudClient = null;
+    this.cloudUser = null;
+    this.cloudSyncQueue = Promise.resolve();
   }
 
   loadState() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        // Asegurar campos básicos si versiones anteriores difieren
-        return {
-          settings: {
-            ...INITIAL_DATA.settings,
-            ...(parsed.settings || {}),
-            weddingWeb: (() => {
-              const baseWeb = { ...(INITIAL_DATA.settings.weddingWeb || {}) };
-              const savedWeb = (parsed.settings && parsed.settings.weddingWeb) ? parsed.settings.weddingWeb : {};
-              const merged = { ...baseWeb, ...savedWeb };
-              // Reparar fotos si tienen URLs que dieron 404
-              if (!merged.churchPhoto || merged.churchPhoto.includes('1548625361-195fe21b66df')) {
-                merged.churchPhoto = baseWeb.churchPhoto;
-              }
-              if (!merged.coverPhoto) merged.coverPhoto = baseWeb.coverPhoto;
-              if (!merged.couplePhoto) merged.couplePhoto = baseWeb.couplePhoto;
-              if (!merged.receptionPhoto) merged.receptionPhoto = baseWeb.receptionPhoto;
-              if (merged.gallery && Array.isArray(merged.gallery)) {
-                merged.gallery = merged.gallery.filter(url => !url.includes('1519225429980-715cb0215aed'));
-                if (merged.gallery.length === 0) merged.gallery = [...baseWeb.gallery];
-              }
-              return merged;
-            })()
-          },
-          categories: parsed.categories && parsed.categories.length ? parsed.categories : [...DEFAULT_CATEGORIES],
-          tasks: parsed.tasks || [],
-          savings: parsed.savings || [],
-          expenses: parsed.expenses || [],
-          invitationTemplates: (parsed.invitationTemplates && parsed.invitationTemplates.length) ? parsed.invitationTemplates : [...(INITIAL_DATA.invitationTemplates || [])],
-          guests: (parsed.guests && parsed.guests.length) ? parsed.guests : [...(INITIAL_DATA.guests || [])]
-        };
+        return this.normalizeState(JSON.parse(saved));
       }
     } catch (e) {
       console.error('Error al cargar datos de LocalStorage:', e);
@@ -52,13 +26,158 @@ class Store {
     return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
 
-  saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-      this.notify();
-    } catch (e) {
-      console.error('Error al guardar en LocalStorage:', e);
+  normalizeState(parsed) {
+    const baseWeb = { ...(INITIAL_DATA.settings.weddingWeb || {}) };
+    const savedWeb = parsed.settings?.weddingWeb || {};
+    const weddingWeb = { ...baseWeb, ...savedWeb };
+    if (!weddingWeb.churchPhoto || weddingWeb.churchPhoto.includes('1548625361-195fe21b66df')) {
+      weddingWeb.churchPhoto = baseWeb.churchPhoto;
     }
+    if (!weddingWeb.coverPhoto) weddingWeb.coverPhoto = baseWeb.coverPhoto;
+    if (!weddingWeb.couplePhoto) weddingWeb.couplePhoto = baseWeb.couplePhoto;
+    if (!weddingWeb.receptionPhoto) weddingWeb.receptionPhoto = baseWeb.receptionPhoto;
+    if (Array.isArray(weddingWeb.gallery)) {
+      weddingWeb.gallery = weddingWeb.gallery.filter(url => !url.includes('1519225429980-715cb0215aed'));
+      if (weddingWeb.gallery.length === 0) weddingWeb.gallery = [...baseWeb.gallery];
+    }
+
+    return {
+      settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}), weddingWeb },
+      categories: parsed.categories?.length ? parsed.categories : [...DEFAULT_CATEGORIES],
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+      savings: Array.isArray(parsed.savings) ? parsed.savings : [],
+      expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
+      invitationTemplates: parsed.invitationTemplates?.length
+        ? parsed.invitationTemplates
+        : [...(INITIAL_DATA.invitationTemplates || [])],
+      guests: Array.isArray(parsed.guests) ? parsed.guests : [...(INITIAL_DATA.guests || [])]
+    };
+  }
+
+  async connectCloud(client, user) {
+    if (!this.cloudUser) this.localState = JSON.parse(JSON.stringify(this.state));
+    else if (this.cloudUser.id !== user.id) this.state = JSON.parse(JSON.stringify(this.localState));
+
+    this.cloudClient = client;
+    this.cloudUser = user;
+    const tables = [
+      ['tasks', 'wedding_tasks'],
+      ['savings', 'wedding_savings'],
+      ['expenses', 'wedding_expenses'],
+      ['guests', 'wedding_guests'],
+      ['invitationTemplates', 'wedding_invitation_templates']
+    ];
+    const requests = tables.map(([, table]) => client.from(table).select('id,payload'));
+    requests.push(client.from('wedding_categories').select('name'));
+    requests.push(client.from('wedding_preferences').select('data').eq('user_id', user.id).maybeSingle());
+    const results = await Promise.all(requests);
+    const failed = results.find(result => result.error);
+    if (failed) throw new Error(`No se pudieron cargar los datos de Supabase: ${failed.error.message}`);
+
+    const remoteState = {};
+    tables.forEach(([key], index) => {
+      remoteState[key] = results[index].data.map(row => row.payload);
+    });
+    remoteState.categories = results[5].data.map(row => row.name);
+    remoteState.settings = results[6].data?.data || {};
+    const hasRemoteData = results.some((result, index) => index === 6
+      ? Boolean(result.data?.data && Object.keys(result.data.data).length)
+      : Boolean(result.data?.length));
+
+    if (hasRemoteData) {
+      this.state = this.normalizeState(remoteState);
+    } else {
+      this.state = JSON.parse(JSON.stringify(this.localState));
+      await this.persistCloudState(this.state);
+    }
+    this.notify();
+  }
+
+  disconnectCloud() {
+    this.cloudClient = null;
+    this.cloudUser = null;
+    this.state = JSON.parse(JSON.stringify(this.localState));
+    this.notify();
+  }
+
+  async persistCloudState(state) {
+    const client = this.cloudClient;
+    const user = this.cloudUser;
+    if (!client || !user) return;
+
+    const { error: settingsError } = await client.from('wedding_preferences').upsert({
+      user_id: user.id,
+      data: state.settings
+    }, { onConflict: 'user_id' });
+    if (settingsError) throw settingsError;
+
+    const categoryRows = state.categories.map(name => ({ user_id: user.id, name }));
+    const { data: existingCategories, error: categoryReadError } = await client
+      .from('wedding_categories').select('name');
+    if (categoryReadError) throw categoryReadError;
+    const categoriesToDelete = existingCategories
+      .map(row => row.name).filter(name => !state.categories.includes(name));
+    if (categoriesToDelete.length) {
+      const { error } = await client.from('wedding_categories')
+        .delete().in('name', categoriesToDelete);
+      if (error) throw error;
+    }
+    if (categoryRows.length) {
+      const { error } = await client.from('wedding_categories')
+        .upsert(categoryRows, { onConflict: 'user_id,name' });
+      if (error) throw error;
+    }
+
+    const tables = [
+      ['tasks', 'wedding_tasks'],
+      ['savings', 'wedding_savings'],
+      ['expenses', 'wedding_expenses'],
+      ['guests', 'wedding_guests'],
+      ['invitationTemplates', 'wedding_invitation_templates']
+    ];
+    for (const [key, table] of tables) {
+      const { data: existingRows, error: readError } = await client.from(table).select('id');
+      if (readError) throw readError;
+      const rows = state[key].map(item => ({
+        user_id: user.id,
+        id: item.id,
+        payload: item
+      }));
+      const rowIds = new Set(rows.map(row => row.id));
+      const idsToDelete = existingRows.map(row => row.id).filter(id => !rowIds.has(id));
+      if (idsToDelete.length) {
+        const { error } = await client.from(table).delete().in('id', idsToDelete);
+        if (error) throw error;
+      }
+      if (rows.length) {
+        const { error } = await client.from(table).upsert(rows, { onConflict: 'user_id,id' });
+        if (error) throw error;
+      }
+    }
+  }
+
+  saveState() {
+    if (!this.cloudUser) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      } catch (e) {
+        console.error('Error al guardar en LocalStorage:', e);
+      }
+    } else {
+      const snapshot = JSON.parse(JSON.stringify(this.state));
+      this.cloudSyncQueue = this.cloudSyncQueue
+        .then(() => this.persistCloudState(snapshot))
+        .catch(error => {
+          console.error('Error al sincronizar con Supabase:', error);
+          const toast = document.getElementById('global-toast');
+          if (toast) {
+            toast.textContent = `No se pudo sincronizar con Supabase: ${error.message}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4500);
+          }
+        });
+    }
+    this.notify();
   }
 
   subscribe(callback) {

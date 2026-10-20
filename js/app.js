@@ -7,6 +7,8 @@ import { initBudgetModule, renderBudgetView, openExpenseModal } from './modules/
 import { initInvitationsModule, renderInvitationsView, handleRsvpLanding } from './modules/invitations.js';
 import { renderWeddingWebPage } from './modules/wedding_web.js';
 import { initExportModule, renderExportView } from './modules/export.js';
+import { setupCloudAccount } from './cloud-account.js';
+import { getPublicWeddingGuest } from './supabase.js';
 
 let activeTab = 'dashboard';
 
@@ -29,6 +31,7 @@ function initApp() {
   setupTopbarQuickActions();
   setupGlobalModals();
   setupCountdown();
+  setupCloudAccount();
 
   // Exponer apertura de la web de boda globalmente
   window.openWeddingWeb = (token = null) => renderWeddingWebPage(token);
@@ -45,7 +48,12 @@ function initApp() {
   const urlParams = new URLSearchParams(window.location.search);
   const webToken = urlParams.get('invitacion') || urlParams.get('boda') || urlParams.get('rsvp') || urlParams.get('confirm');
   if (webToken) {
-    renderWeddingWebPage(webToken);
+    getPublicWeddingGuest(webToken)
+      .then(guest => renderWeddingWebPage(webToken, guest))
+      .catch(error => {
+        console.error('No se pudo cargar la invitación pública de Supabase:', error);
+        renderWeddingWebPage(webToken);
+      });
   } else {
     // Mostrar pestaña inicial
     navigateToTab('dashboard');

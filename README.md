@@ -105,7 +105,16 @@ Puedes subir los archivos directamente a cualquier servidor web o servicio de ho
 - `/css/styles.css`
 - `/js/` (todos los módulos)
 
-Los datos se guardan de forma segura y permanente en el `LocalStorage` del navegador del usuario.
+Sin configurar Supabase, los datos se guardan en el `LocalStorage` del navegador. Para sincronizarlos entre dispositivos, sigue estos pasos:
+
+1. Crea un proyecto en [Supabase](https://supabase.com/dashboard).
+2. En **SQL Editor**, ejecuta el contenido de [`supabase/migrations/20261020000000_initial_schema.sql`](./supabase/migrations/20261020000000_initial_schema.sql).
+3. En **Project Settings → API**, copia la **Project URL** y la clave pública **anon** (o **publishable**) en `SUPABASE_URL` y `SUPABASE_ANON_KEY` de [`js/supabase-config.js`](./js/supabase-config.js). Esas dos variables son públicas para este frontend; nunca uses una clave `service_role` ni una clave secreta.
+4. Habilita **Email** en **Authentication → Sign In / Providers**. Abre la aplicación, pulsa **Conectar nube** y crea una cuenta o inicia sesión. Para compartir los datos con tu pareja, ambos dispositivos pueden iniciar sesión con la misma cuenta.
+
+La migración crea tablas independientes para preferencias, categorías, tareas, ahorros, gastos, invitados y plantillas. Row Level Security (RLS) restringe las operaciones autenticadas al usuario propietario. Los enlaces de invitación usan funciones RPC que solo exponen los campos necesarios para la confirmación RSVP y no abren la tabla de invitados.
+
+Al iniciar sesión por primera vez, si la cuenta aún no tiene datos, el estado local se copia a Supabase. Los cambios posteriores se guardan en la nube; al cerrar sesión, la aplicación vuelve a mostrar los datos locales de ese navegador.
 
 ---
 

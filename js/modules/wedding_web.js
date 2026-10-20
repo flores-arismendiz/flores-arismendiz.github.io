@@ -1,5 +1,6 @@
 // Módulo: Web de Invitación Nupcial Interactiva (Estilo ChungDoi de Alta Gama Romántica)
 import { store } from '../store.js';
+import { isSupabaseConfigured, submitPublicWeddingRsvp } from '../supabase.js';
 
 let countdownTimerId = null;
 let isAudioPlaying = false;
@@ -7,7 +8,7 @@ let audioElement = null;
 let carouselAutoSlideId = null;
 let petalsActive = true;
 
-export function renderWeddingWebPage(token = null) {
+export function renderWeddingWebPage(token = null, publicGuest = undefined) {
   const container = document.getElementById('wedding-web-invitation-container');
   const appLayout = document.getElementById('app-layout');
   if (!container) return;
@@ -25,7 +26,9 @@ export function renderWeddingWebPage(token = null) {
   const weddingDateStr = settings.weddingDate || '2027-02-14';
 
   // Obtener invitado si viene por token
-  const guest = token ? store.getGuestByToken(token) : null;
+  const guest = token
+    ? (publicGuest === undefined ? store.getGuestByToken(token) : publicGuest)
+    : null;
 
   // Limpiar timer anterior si existiera
   if (countdownTimerId) {
@@ -798,24 +801,41 @@ function setupWebEventListeners(guest) {
   const successDesc = document.getElementById('success-desc-text');
 
   if (formRsvp) {
-    formRsvp.addEventListener('submit', (e) => {
+    formRsvp.addEventListener('submit', async (e) => {
       e.preventDefault();
       const guestName = document.getElementById('web-rsvp-name').value.trim();
       const passes = parseInt(document.getElementById('web-rsvp-passes').value, 10) || 1;
       const status = document.getElementById('web-rsvp-status').value;
       const message = document.getElementById('web-rsvp-message').value.trim();
 
-      if (guest) {
-        store.confirmGuestByToken(guest.token, status, passes, message);
-      } else {
-        store.addGuest({
-          name: guestName,
-          passes: passes,
-          status: status,
-          notes: message ? `RSVP Web: ${message}` : 'Confirmado desde web de invitación',
-          confirmedPasses: status === 'Confirmado' ? passes : 0,
-          confirmedAt: new Date().toISOString()
-        });
+      const submitButton = formRsvp.querySelector('[type="submit"]');
+      submitButton.disabled = true;
+      try {
+        if (guest?.token && isSupabaseConfigured()) {
+          const updatedGuest = await submitPublicWeddingRsvp(guest.token, status, passes, message);
+          if (updatedGuest) Object.assign(guest, updatedGuest);
+          if (store.getGuestByToken(guest.token)) {
+            store.confirmGuestByToken(guest.token, status, passes, message);
+          }
+        } else if (isSupabaseConfigured()) {
+          throw new Error('No se encontró una invitación válida para registrar el RSVP.');
+        } else if (guest) {
+          store.confirmGuestByToken(guest.token, status, passes, message);
+        } else {
+          store.addGuest({
+            name: guestName,
+            passes: passes,
+            status: status,
+            notes: message ? `RSVP Web: ${message}` : 'Confirmado desde web de invitación',
+            confirmedPasses: status === 'Confirmado' ? passes : 0,
+            confirmedAt: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('No se pudo registrar el RSVP:', error);
+        alert(`No se pudo registrar tu respuesta: ${error.message}`);
+        submitButton.disabled = false;
+        return;
       }
 
       formRsvp.style.display = 'none';
