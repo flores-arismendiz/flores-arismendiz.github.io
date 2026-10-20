@@ -8,7 +8,7 @@ let audioElement = null;
 let carouselAutoSlideId = null;
 let petalsActive = true;
 
-export function renderWeddingWebPage(token = null, publicGuest = undefined) {
+export function renderWeddingWebPage(token = null, publicGuest = undefined, publicSettings = null) {
   const container = document.getElementById('wedding-web-invitation-container');
   const appLayout = document.getElementById('app-layout');
   if (!container) return;
@@ -18,8 +18,8 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined) {
   container.style.display = 'block';
   document.body.classList.add('wedding-web-active');
 
-  const state = store.getState();
-  const settings = state.settings || {};
+  const state = publicSettings ? null : store.getState();
+  const settings = publicSettings || state.settings || {};
   const web = settings.weddingWeb || {};
   const groomName = settings.groomName || 'Él';
   const brideName = settings.brideName || 'Ella';

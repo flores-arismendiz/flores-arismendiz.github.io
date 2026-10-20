@@ -26,12 +26,26 @@ export async function getPublicWeddingGuest(token) {
     invitation_token: token
   });
   if (error) throw error;
+  if (!data || Array.isArray(data) || typeof data !== 'object') {
+    throw new Error('No se encontró la invitación en Supabase.');
+  }
+  return data;
+}
+
+export async function getPublicWeddingSettings() {
+  const client = await getSupabaseClient();
+  if (!client) throw new Error('Supabase no está configurado.');
+  const { data, error } = await client.rpc('get_public_wedding_settings');
+  if (error) throw error;
+  if (!data || Array.isArray(data) || typeof data !== 'object') {
+    throw new Error('No hay una configuración pública de boda en Supabase.');
+  }
   return data;
 }
 
 export async function submitPublicWeddingRsvp(token, status, attendees, comment) {
   const client = await getSupabaseClient();
-  if (!client) return null;
+  if (!client) throw new Error('Supabase no está configurado.');
   const { data, error } = await client.rpc('submit_public_wedding_rsvp', {
     invitation_token: token,
     response_status: status,

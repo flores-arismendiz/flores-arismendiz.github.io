@@ -8,7 +8,7 @@ import { initInvitationsModule, renderInvitationsView, handleRsvpLanding } from 
 import { renderWeddingWebPage } from './modules/wedding_web.js';
 import { initExportModule, renderExportView } from './modules/export.js';
 import { setupCloudAccount } from './cloud-account.js';
-import { getPublicWeddingGuest } from './supabase.js';
+import { getPublicWeddingGuest, getPublicWeddingSettings } from './supabase.js';
 
 let activeTab = 'dashboard';
 
@@ -30,13 +30,28 @@ function initApp() {
   setupSidebarDrawer();
   setupTopbarQuickActions();
   setupGlobalModals();
-  setupCountdown();
-  setupCloudAccount();
+  const appLayout = document.getElementById('app-layout');
+  if (appLayout) appLayout.style.display = 'none';
 
   // Exponer apertura de la web de boda globalmente
   window.openWeddingWeb = (token = null) => renderWeddingWebPage(token);
 
-  // Inicializar módulos
+  // Verificar si viene con enlace a la Web de Invitación (?invitacion=token, ?boda=token, ?rsvp=token)
+  const urlParams = new URLSearchParams(window.location.search);
+  const webToken = urlParams.get('invitacion') || urlParams.get('boda') || urlParams.get('rsvp') || urlParams.get('confirm');
+  if (webToken) {
+    Promise.all([
+      getPublicWeddingSettings(),
+      getPublicWeddingGuest(webToken)
+    ])
+      .then(([settings, guest]) => renderWeddingWebPage(webToken, guest, settings))
+      .catch(error => {
+        console.error('No se pudo cargar la invitación pública de Supabase:', error);
+        showPublicWeddingError(error);
+      });
+    return;
+  }
+
   initDashboardModule();
   initTasksModule();
   initSavingsModule();
@@ -44,24 +59,26 @@ function initApp() {
   initInvitationsModule();
   initExportModule();
 
-  // Verificar si viene con enlace a la Web de Invitación (?invitacion=token, ?boda=token, ?rsvp=token)
-  const urlParams = new URLSearchParams(window.location.search);
-  const webToken = urlParams.get('invitacion') || urlParams.get('boda') || urlParams.get('rsvp') || urlParams.get('confirm');
-  if (webToken) {
-    getPublicWeddingGuest(webToken)
-      .then(guest => renderWeddingWebPage(webToken, guest))
-      .catch(error => {
-        console.error('No se pudo cargar la invitación pública de Supabase:', error);
-        renderWeddingWebPage(webToken);
-      });
-  } else {
-    // Mostrar pestaña inicial
-    navigateToTab('dashboard');
-  }
-
   // Suscribirse para actualizar contadores en el header y sidebar
   store.subscribe(updateHeaderBadges);
-  updateHeaderBadges();
+  setupCloudAccount({
+    onAuthenticated: () => {
+      if (appLayout) appLayout.style.display = '';
+      setupCountdown();
+      updateHeaderBadges();
+      navigateToTab('dashboard');
+    },
+    onUnauthenticated: () => {
+      if (appLayout) appLayout.style.display = 'none';
+    }
+  });
+}
+
+function showPublicWeddingError(error) {
+  const container = document.getElementById('wedding-web-invitation-container');
+  if (!container) return;
+  container.style.display = 'block';
+  container.textContent = `No se pudo cargar la invitación desde la base de datos. ${error.message}`;
 }
 
 function setupNavigation() {
@@ -184,7 +201,7 @@ function setupGlobalModals() {
   const overlay = document.getElementById('global-modal-overlay');
   if (overlay) {
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
+      if (e.target === overlay && !overlay.dataset.authRequired) {
         overlay.classList.remove('active');
       }
     });
@@ -192,7 +209,7 @@ function setupGlobalModals() {
 
   // Cerrar con tecla Escape
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && overlay && overlay.classList.contains('active')) {
+    if (e.key === 'Escape' && overlay && overlay.classList.contains('active') && !overlay.dataset.authRequired) {
       overlay.classList.remove('active');
     }
   });

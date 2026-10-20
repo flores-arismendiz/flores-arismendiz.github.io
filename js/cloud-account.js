@@ -3,20 +3,37 @@ import { getSupabaseClient, isSupabaseConfigured } from './supabase.js';
 
 let client = null;
 let activeUserId = null;
+let connectingUserId = null;
+let connectingPromise = null;
+let onAuthenticated = () => {};
+let onUnauthenticated = () => {};
+let authRequired = false;
 
-export async function setupCloudAccount() {
+export async function setupCloudAccount(options = {}) {
+  onAuthenticated = options.onAuthenticated || (() => {});
+  onUnauthenticated = options.onUnauthenticated || (() => {});
   const button = document.getElementById('topbar-btn-account');
   if (!button) return;
 
   button.addEventListener('click', () => openAccountModal());
   updateAccountButton(button);
-  if (!isSupabaseConfigured()) return;
+  if (!isSupabaseConfigured()) {
+    authRequired = true;
+    setAuthenticationGate(true);
+    openAccountModal();
+    return;
+  }
 
   try {
     client = await getSupabaseClient();
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
     if (data.session) await applySession(data.session);
+    else {
+      authRequired = true;
+      setAuthenticationGate(true);
+      openAccountModal();
+    }
 
     client.auth.onAuthStateChange((_event, session) => {
       setTimeout(() => {
@@ -24,18 +41,40 @@ export async function setupCloudAccount() {
       }, 0);
     });
   } catch (error) {
-    showCloudError(error);
+    authRequired = true;
+    setAuthenticationGate(true);
+    renderAuthForm('signin', error.message);
+    document.getElementById('global-modal-overlay')?.classList.add('active');
   }
 }
 
 async function applySession(session) {
   if (session?.user) {
     if (activeUserId === session.user.id) return;
-    await store.connectCloud(client, session.user);
-    activeUserId = session.user.id;
+    if (connectingUserId === session.user.id) return connectingPromise;
+    connectingUserId = session.user.id;
+    connectingPromise = (async () => {
+      await store.connectCloud(client, session.user);
+      activeUserId = session.user.id;
+      authRequired = false;
+      setAuthenticationGate(false);
+      closeAccountModal();
+      updateAccountButton(document.getElementById('topbar-btn-account'));
+      onAuthenticated();
+    })();
+    try {
+      await connectingPromise;
+    } finally {
+      connectingUserId = null;
+      connectingPromise = null;
+    }
   } else if (activeUserId) {
     activeUserId = null;
+    authRequired = true;
+    setAuthenticationGate(true);
     store.disconnectCloud();
+    onUnauthenticated();
+    openAccountModal();
   }
   updateAccountButton(document.getElementById('topbar-btn-account'));
 }
@@ -52,6 +91,7 @@ function openAccountModal() {
   if (!overlay || !body) return;
 
   if (!isSupabaseConfigured()) {
+    authRequired = true;
     body.innerHTML = `
       <div class="modal-card">
         <div class="modal-header">
@@ -98,7 +138,7 @@ function renderAuthForm(mode, message = '') {
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title">${mode === 'signup' ? 'Crear cuenta' : 'Iniciar sesión'}</h3>
-        <button class="modal-close-btn" type="button" aria-label="Cerrar">&times;</button>
+        ${authRequired ? '' : '<button class="modal-close-btn" type="button" aria-label="Cerrar">&times;</button>'}
       </div>
       <form class="modal-form" id="form-cloud-auth">
         <p>Usa la misma cuenta en los dispositivos que compartirán la planificación.</p>
@@ -118,7 +158,7 @@ function renderAuthForm(mode, message = '') {
         </button>
       </form>
     </div>`;
-  body.querySelector('.modal-close-btn').addEventListener('click', closeAccountModal);
+  body.querySelector('.modal-close-btn')?.addEventListener('click', closeAccountModal);
   body.querySelector('#btn-cloud-auth-toggle').addEventListener('click', () => {
     renderAuthForm(mode === 'signup' ? 'signin' : 'signup');
   });
@@ -156,15 +196,22 @@ async function signOut() {
     const { error } = await client.auth.signOut();
     if (error) throw error;
     await applySession(null);
-    closeAccountModal();
-    showCloudMessage('Sesión cerrada. Los datos locales siguen disponibles en este navegador.');
+    showCloudMessage('Sesión cerrada. Inicia sesión para volver a cargar los datos de Supabase.');
   } catch (error) {
     showCloudError(error);
   }
 }
 
 function closeAccountModal() {
+  if (authRequired && !activeUserId) return;
   document.getElementById('global-modal-overlay')?.classList.remove('active');
+}
+
+function setAuthenticationGate(required) {
+  const overlay = document.getElementById('global-modal-overlay');
+  if (!overlay) return;
+  if (required) overlay.dataset.authRequired = 'true';
+  else delete overlay.dataset.authRequired;
 }
 
 function showCloudError(error) {

@@ -88,8 +88,8 @@ class Store {
       this.state = this.normalizeState(remoteState);
     } else {
       this.state = JSON.parse(JSON.stringify(this.localState));
-      await this.persistCloudState(this.state);
     }
+    await this.persistCloudState(this.state);
     this.notify();
   }
 
@@ -110,6 +110,23 @@ class Store {
       data: state.settings
     }, { onConflict: 'user_id' });
     if (settingsError) throw settingsError;
+
+    const publicSettings = {
+      groomName: state.settings.groomName,
+      brideName: state.settings.brideName,
+      weddingDate: state.settings.weddingDate,
+      weddingTime: state.settings.weddingTime,
+      churchName: state.settings.churchName,
+      receptionVenue: state.settings.receptionVenue,
+      dressCode: state.settings.dressCode,
+      weddingWeb: state.settings.weddingWeb
+    };
+    const { error: publicSettingsError } = await client.from('wedding_public_site').upsert({
+      site_key: true,
+      user_id: user.id,
+      data: publicSettings
+    }, { onConflict: 'site_key' });
+    if (publicSettingsError) throw publicSettingsError;
 
     const categoryRows = state.categories.map(name => ({ user_id: user.id, name }));
     const { data: existingCategories, error: categoryReadError } = await client
