@@ -97,7 +97,7 @@ function initApp() {
   // Suscribirse para actualizar contadores en el header y sidebar
   store.subscribe(updateHeaderBadges);
   setupCloudAccount({
-    requireAuthentication: false,
+    requireAuthentication: true,
     onAuthenticated: () => {
       if (appLayout) appLayout.style.display = '';
       setupCountdown();

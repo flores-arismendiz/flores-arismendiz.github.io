@@ -51,24 +51,18 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
   ];
 
   container.innerHTML = `
-    <!-- SOBRE NUPCIAL INTERACTIVO CON SELLO DE LACRE REALISTA (EXPERIENCIA ROMÁNTICA DE BIENVENIDA) -->
+    <!-- PORTADA DE INVITACIÓN INSPIRADA EN EL ESTILO MINIMALISTA DEL DEMO -->
     <div id="wedding-envelope-overlay" class="wedding-envelope-overlay">
       <div class="envelope-modal-backdrop"></div>
       <div class="envelope-stage">
-        <div class="envelope-card" id="envelope-card">
-          <!-- Solapa Superior con Lacre -->
-          <div class="envelope-flap" id="envelope-flap"></div>
-          
-          <!-- Botón de Sello de Lacre Realista -->
-          <div class="envelope-wax-seal" id="envelope-seal-trigger" title="Haz clic en el sello para abrir tu invitación">
-            <div class="wax-seal-body">
-              <span class="wax-seal-heart" aria-hidden="true">♥</span>
-            </div>
-            <div class="wax-pulse-ring"></div>
-          </div>
-
-          <!-- Cara Frontal del Sobre con Invitado Personalizado -->
+        <div class="envelope-card${guest ? ' envelope-card-personalized' : ''}" id="envelope-card">
+          ${web.coverPhoto ? `<img class="envelope-cover-image" src="${escapeHtml(web.coverPhoto)}" alt="" aria-hidden="true">` : ''}
           <div class="envelope-front-content">
+            <div class="envelope-wax-seal" aria-hidden="true">
+              <div class="wax-seal-body">
+                <span class="wax-seal-heart">♥</span>
+              </div>
+            </div>
             <span class="envelope-subtitle">Nuestra Boda</span>
             <h2 class="envelope-couple-script">
               <span>${escapeHtml(groomName)}</span>
@@ -76,6 +70,8 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
               <span>${escapeHtml(brideName)}</span>
             </h2>
             <div class="envelope-filigree-divider">✦ ❖ ✦</div>
+
+            <p class="envelope-date-preview">${formatDateFullSpanish(weddingDateStr)}</p>
 
             <div class="envelope-recipient-badge">
               <span class="recipient-label">${guest ? 'Invitación especial para' : 'Les invitamos cordialmente'}</span>
@@ -87,13 +83,9 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
               ` : ''}
             </div>
 
-            <p class="envelope-date-preview">${formatDateFullSpanish(weddingDateStr)} &bull; ${escapeHtml(settings.weddingTime || '17:30 hrs')}</p>
-
             <button type="button" class="btn-envelope-open" id="btn-open-envelope-action">
-              <span>Abrir Invitación</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>Abrir</span>
             </button>
-            <span class="envelope-tap-instruction">Toca el sello o el botón para abrir</span>
           </div>
         </div>
       </div>
@@ -728,7 +720,6 @@ function setupWebEventListeners(guest) {
   // ---- SOBRE NUPCIAL INTERACTIVO CON LACRE ----
   const envelopeOverlay = document.getElementById('wedding-envelope-overlay');
   const envelopeCard = document.getElementById('envelope-card');
-  const sealTrigger = document.getElementById('envelope-seal-trigger');
   const btnOpenEnvelope = document.getElementById('btn-open-envelope-action');
   const btnReopen = document.getElementById('btn-reopen-envelope');
 
@@ -748,13 +739,11 @@ function setupWebEventListeners(guest) {
       });
     }
 
-    // Desvanecer el sobre tras la animación de apertura de la solapa
     setTimeout(() => {
       envelopeOverlay.classList.add('envelope-dismissed');
-    }, 700);
+    }, 650);
   }
 
-  if (sealTrigger) sealTrigger.addEventListener('click', openEnvelope);
   if (btnOpenEnvelope) btnOpenEnvelope.addEventListener('click', openEnvelope);
 
   // Botón reabrir sobre en cualquier momento

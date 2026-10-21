@@ -6760,6 +6760,11 @@ body {
 
 /* Invitación minimalista en tonos café e ivory */
 .wedding-web-wrapper {
+  width: min(100%, 480px);
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
   --romance-gold: #80634e;
   --romance-gold-light: #927963;
   color: #594638;
@@ -6771,7 +6776,7 @@ body {
 }
 
 body.wedding-web-active {
-  background: #f4f1e9;
+  background: #e4ddd2;
 }
 
 .wedding-envelope-overlay {
@@ -6779,6 +6784,8 @@ body.wedding-web-active {
 }
 
 .envelope-modal-backdrop {
+  position: absolute;
+  inset: 0;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(126, 91, 67, 0.74), rgba(73, 48, 34, 0.98)),
     #493022;
@@ -6786,80 +6793,103 @@ body.wedding-web-active {
 }
 
 .envelope-stage {
-  max-width: 340px;
+  width: min(600px, calc(100vw - 32px), calc(142.86vh - 46px));
+  max-width: 600px;
 }
 
 .envelope-card {
-  min-height: 460px;
-  padding: 5.6rem 1.4rem 2rem;
+  display: flex;
+  width: 100%;
+  aspect-ratio: 10 / 7;
+  min-height: 0;
+  padding: 2rem 2.5rem;
   overflow: hidden;
-  border: 1px solid rgba(111, 83, 62, 0.18);
-  border-radius: 8px;
-  background: #f3f0e9;
-  box-shadow: 0 24px 60px rgba(35, 23, 16, 0.32);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 2px;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 255, 255, 0.8), transparent 68%),
+    repeating-linear-gradient(0deg, rgba(81, 93, 103, 0.018) 0, rgba(81, 93, 103, 0.018) 1px, transparent 1px, transparent 4px),
+    #f2f0e9;
+  box-shadow: 0 32px 90px rgba(0, 8, 22, 0.4);
+  transition: opacity 650ms ease, transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .envelope-card::before,
 .envelope-card::after {
   position: absolute;
   z-index: 0;
-  width: 82px;
-  height: 92px;
-  border: 0;
-  border-radius: 0;
-  color: #a18b70;
-  font-family: Georgia, serif;
-  font-size: 2.8rem;
-  line-height: 0.92;
+  color: #8b7764;
+  font-family: var(--font-romance-serif);
+  font-size: 4rem;
+  line-height: 1;
   opacity: 0.42;
   pointer-events: none;
-  white-space: pre;
 }
 
 .envelope-card::before {
-  inset: 8px auto auto 8px;
-  content: "❀\A❧";
-  text-align: left;
+  content: "❧";
+  top: 0.8rem;
+  left: 0.6rem;
+  transform: rotate(-35deg);
 }
 
 .envelope-card::after {
-  inset: auto 8px 8px auto;
-  content: "❧\A❀";
-  text-align: right;
+  content: "❧";
+  right: 0.6rem;
+  bottom: 0.8rem;
+  transform: rotate(145deg);
 }
 
-.envelope-flap {
-  display: none;
+.envelope-cover-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 48%;
+  opacity: 0.3;
+  filter: sepia(0.25) saturate(0.72);
+  pointer-events: none;
 }
 
-.envelope-wax-seal {
-  top: 1.25rem;
-  z-index: 2;
-}
-
-.wax-seal-body {
-  width: 58px;
-  height: 58px;
-  border: 0;
-  background: #513725;
-  color: #f8f4ec;
-  box-shadow: 0 8px 18px rgba(57, 38, 25, 0.24);
-}
-
-.wax-seal-heart {
-  font-family: Georgia, serif;
-  font-size: 1.65rem;
-  line-height: 1;
-}
-
-.wax-pulse-ring {
-  border-color: rgba(128, 99, 78, 0.35);
+.envelope-card.envelope-opening {
+  opacity: 0;
+  transform: translateY(-22px) scale(0.98);
 }
 
 .envelope-front-content {
   position: relative;
   z-index: 1;
+  width: min(100%, 440px);
   margin-top: 0;
+  animation: invitation-cover-arrive 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.envelope-wax-seal {
+  position: absolute;
+  top: 0.5rem;
+  left: -3.4rem;
+  transform: none;
+}
+
+.envelope-wax-seal:hover {
+  transform: scale(1.08);
+}
+
+.envelope-wax-seal .wax-seal-body {
+  width: 54px;
+  height: 54px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+
+@keyframes invitation-cover-arrive {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .envelope-sacred-rings {
@@ -6868,9 +6898,9 @@ body.wedding-web-active {
 
 .envelope-subtitle {
   color: #8b7764;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.24em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
@@ -6879,12 +6909,12 @@ body.wedding-web-active {
   flex-direction: column;
   align-items: center;
   gap: 0;
-  margin: 0.9rem 0 0.45rem;
+  margin: 0.55rem 0 0.35rem;
   color: #4c382b;
   font-family: var(--font-romance-serif);
-  font-size: 2.55rem;
+  font-size: 2.9rem;
   font-weight: 400;
-  line-height: 0.94;
+  line-height: 1.02;
 }
 
 .envelope-name-amp {
@@ -6894,14 +6924,14 @@ body.wedding-web-active {
 }
 
 .envelope-filigree-divider {
-  margin: 0.25rem auto 0.8rem;
+  margin: 0.45rem auto 0.75rem;
   color: #8b735e;
-  font-size: 0.68rem;
-  letter-spacing: 0.22em;
+  font-size: 0.86rem;
+  letter-spacing: 0.3em;
 }
 
 .envelope-recipient-badge {
-  margin: 0 auto 0.8rem;
+  margin: 0.7rem auto 0.6rem;
   padding: 0;
   border: 0;
   background: transparent;
@@ -6910,10 +6940,10 @@ body.wedding-web-active {
 
 .recipient-label {
   color: #857566;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0;
-  text-transform: none;
+  text-transform: capitalize;
 }
 
 .recipient-name {
@@ -6929,30 +6959,32 @@ body.wedding-web-active {
 }
 
 .envelope-date-preview {
-  margin-bottom: 1.15rem;
+  margin: 0.7rem 0;
   color: #756252;
   font-family: var(--font-romance-serif);
-  font-size: 1.08rem;
+  font-size: 1.18rem;
   font-style: normal;
 }
 
 .btn-envelope-open {
-  min-width: 108px;
+  min-width: 120px;
   justify-content: center;
-  padding: 0.75rem 1.6rem;
+  padding: 0.78rem 1.8rem;
   border-radius: 30px;
   background: #513725;
   color: #f8f4ec;
   font-family: var(--font-romance-serif);
-  font-size: 1rem;
+  font-size: 1.08rem;
   font-weight: 500;
-  letter-spacing: 0;
-  box-shadow: 0 8px 18px rgba(57, 38, 25, 0.2);
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 24px rgba(57, 38, 25, 0.24);
+  transition: background 250ms ease, transform 250ms ease, box-shadow 250ms ease;
 }
 
 .btn-envelope-open:hover {
   background: #674a35;
-  box-shadow: 0 10px 22px rgba(57, 38, 25, 0.27);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(57, 38, 25, 0.3);
 }
 
 .envelope-tap-instruction {
@@ -6964,7 +6996,7 @@ body.wedding-web-active {
 }
 
 .btn-envelope-open {
-  min-width: 108px;
+  min-width: 120px;
 }
 
 .romantic-petals-container {
@@ -6973,6 +7005,12 @@ body.wedding-web-active {
 }
 
 .web-nav-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  transform: none;
   border-bottom-color: rgba(112, 86, 65, 0.16);
   background: rgba(244, 241, 233, 0.94);
   box-shadow: 0 3px 16px rgba(60, 44, 31, 0.08);
@@ -7286,17 +7324,151 @@ body.wedding-web-active {
 }
 
 @media (max-width: 600px) {
+  .wedding-envelope-overlay {
+    padding: 0.75rem;
+  }
+
+  .envelope-stage {
+    width: min(480px, calc(100vw - 24px), calc(142.86vh - 46px));
+  }
+
   .envelope-card {
-    min-height: 430px;
-    padding: 5.1rem 1.1rem 1.6rem;
+    aspect-ratio: 10 / 7;
+    min-height: 0;
+    padding: 1.5rem 0.75rem 0.5rem;
+  }
+
+  .envelope-front-content {
+    width: 100%;
+  }
+
+  .envelope-wax-seal {
+    top: 0.4rem;
+    left: 0.4rem;
+  }
+
+  .envelope-wax-seal .wax-seal-body {
+    width: 42px;
+    height: 42px;
+  }
+
+  .wax-seal-body {
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
   }
 
   .envelope-couple-script {
-    font-size: 2.3rem;
+    margin: 0.1rem 0;
+    font-size: clamp(1rem, 4.5vw, 1.3rem);
+    line-height: 0.94;
+  }
+
+  .envelope-name-amp {
+    padding: 0.08rem 0;
+    font-size: 0.85rem;
+  }
+
+  .envelope-filigree-divider {
+    margin: 0.08rem auto 0.15rem;
+    font-size: 0.72rem;
+  }
+
+  .envelope-recipient-badge {
+    margin: 0.15rem auto 0.1rem;
+  }
+
+  .recipient-label,
+  .recipient-name {
+    font-size: 0.75rem;
+  }
+
+  .recipient-passes-tag {
+    margin-top: 0.1rem;
+    padding: 0.12rem 0.35rem;
+    font-size: 0.65rem;
+  }
+
+  .envelope-date-preview {
+    margin: 0.15rem 0;
+    font-size: 0.82rem;
+  }
+
+  .btn-envelope-open {
+    min-height: 0;
+    padding: 0.4rem 1.3rem;
+    font-size: 0.95rem;
   }
 
   .web-nav-header {
     padding: 0.55rem 0;
+  }
+}
+
+@media (max-height: 520px) {
+  .envelope-card {
+    padding: 1rem 1.5rem;
+  }
+
+  .envelope-subtitle {
+    font-size: 0.62rem;
+  }
+
+  .envelope-couple-script {
+    margin: 0.25rem 0;
+    font-size: clamp(1.2rem, 5vh, 2rem);
+    line-height: 0.92;
+  }
+
+  .envelope-name-amp {
+    padding: 0.12rem 0;
+    font-size: 1rem;
+  }
+
+  .envelope-filigree-divider {
+    margin: 0.2rem auto 0.35rem;
+  }
+
+  .envelope-recipient-badge {
+    margin: 0.35rem auto 0.25rem;
+  }
+
+  .recipient-label,
+  .recipient-name {
+    font-size: 0.82rem;
+  }
+
+  .envelope-date-preview {
+    margin: 0.3rem 0;
+    font-size: 0.92rem;
+  }
+
+  .btn-envelope-open {
+    padding: 0.55rem 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .wedding-web-wrapper {
+    border: 0;
+    box-shadow: none;
+  }
+
+  body.wedding-web-active {
+    background: #f4f1e9;
+  }
+}
+
+@media (min-width: 768px) {
+  .wedding-web-wrapper {
+    width: min(100%, 900px);
+    border: 1px solid rgba(0, 34, 76, 0.13);
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .web-nav-header {
+    width: min(100%, 900px);
   }
 }
 
@@ -7357,15 +7529,16 @@ body.wedding-web-active {
 }
 
 .gallery-carousel-wrapper {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 1.2rem 1.2rem 0.9rem;
-  overflow: hidden;
-  border: 1px solid rgba(121, 91, 65, 0.2);
-  border-radius: 14px;
-  background: rgba(251, 249, 244, 0.84);
-  box-shadow: 0 20px 48px rgba(69, 48, 31, 0.11), 0 3px 9px rgba(69, 48, 31, 0.05);
+  max-width: none;
+  margin: 0 auto 1.25rem;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   backdrop-filter: none;
+  transition: none;
 }
 
 .gallery-carousel-wrapper::before {
@@ -7373,35 +7546,38 @@ body.wedding-web-active {
 }
 
 .gallery-carousel-frame {
-  overflow: hidden;
-  border-radius: 8px;
-  background: #e9e0d3;
-  box-shadow: 0 8px 20px rgba(67, 48, 33, 0.12);
+  isolation: isolate;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .gallery-carousel-track {
   position: relative;
-  height: clamp(300px, 48vw, 470px);
+  height: clamp(440px, 58vw, 620px);
   overflow: hidden;
   transform: none !important;
+  perspective: 1400px;
 }
 
 .gallery-carousel-slide {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 62%;
+  width: 36%;
   min-width: 0;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  border: 7px solid #fbf9f4;
-  border-radius: 5px;
+  border: 1px solid rgba(255, 253, 248, 0.86);
+  border-radius: 3px;
   background: #d9cbb8;
-  box-shadow: 0 12px 28px rgba(54, 37, 24, 0.22);
+  box-shadow: 0 24px 52px rgba(54, 37, 24, 0.24), 0 0 0 1px rgba(117, 86, 59, 0.1);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.9);
-  transition: left 650ms cubic-bezier(0.22, 1, 0.36, 1), width 650ms cubic-bezier(0.22, 1, 0.36, 1), transform 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease, filter 650ms ease;
+  transition: left 800ms cubic-bezier(0.2, 0.85, 0.25, 1), width 800ms cubic-bezier(0.2, 0.85, 0.25, 1), transform 800ms cubic-bezier(0.2, 0.85, 0.25, 1), opacity 650ms ease, filter 800ms ease, box-shadow 500ms ease;
   will-change: transform, opacity;
 }
 
@@ -7414,30 +7590,31 @@ body.wedding-web-active {
 .gallery-carousel-slide.is-active {
   z-index: 3;
   left: 50%;
-  width: 62%;
+  width: 36%;
   pointer-events: auto;
   transform: translate(-50%, -50%) scale(1);
+  box-shadow: 0 28px 58px rgba(54, 37, 24, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
 .gallery-carousel-slide.is-prev {
   z-index: 2;
-  left: 15%;
-  width: 46%;
-  filter: grayscale(0.65) brightness(0.9);
-  transform: translate(-50%, -50%) scale(0.88);
+  left: 27%;
+  width: 29%;
+  filter: grayscale(0.4) brightness(0.82) saturate(0.8);
+  transform: translate(-50%, -50%) perspective(900px) rotateY(11deg) scale(0.86);
 }
 
 .gallery-carousel-slide.is-next {
   z-index: 2;
-  left: 85%;
-  width: 46%;
-  filter: grayscale(0.4) brightness(0.92);
-  transform: translate(-50%, -50%) scale(0.88);
+  left: 73%;
+  width: 29%;
+  filter: grayscale(0.3) brightness(0.84) saturate(0.82);
+  transform: translate(-50%, -50%) perspective(900px) rotateY(-11deg) scale(0.86);
 }
 
 .gallery-carousel-slide.is-prev,
 .gallery-carousel-slide.is-next {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .gallery-slide-inner {
@@ -7449,21 +7626,30 @@ body.wedding-web-active {
 }
 
 .gallery-slide-inner img {
-  transition: transform 700ms ease;
+  transition: transform 1200ms cubic-bezier(0.2, 0.65, 0.3, 1), filter 800ms ease;
 }
 
 .gallery-carousel-slide:hover .gallery-slide-inner img {
-  transform: scale(1.025);
+  transform: scale(1.045);
+}
+
+.gallery-carousel-slide.is-active .gallery-slide-inner img {
+  animation: gallery-photo-reveal 1100ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
+}
+
+@keyframes gallery-photo-reveal {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
 }
 
 .gallery-slide-overlay {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 1.15rem 1.25rem;
-  background: linear-gradient(180deg, transparent 42%, rgba(39, 26, 18, 0.74) 100%);
+  padding: 1.4rem 1.5rem;
+  background: linear-gradient(180deg, transparent 28%, rgba(39, 26, 18, 0.12) 48%, rgba(39, 26, 18, 0.82) 100%);
   opacity: 0;
-  transition: opacity 250ms ease;
+  transition: opacity 450ms ease;
 }
 
 .gallery-carousel-slide.is-active .gallery-slide-overlay,
@@ -7475,18 +7661,26 @@ body.wedding-web-active {
 .gallery-slide-caption {
   color: #fffaf1;
   font-family: var(--font-romance-serif);
-  font-size: 1.05rem;
+  font-size: clamp(1rem, 1.7vw, 1.3rem);
   font-style: italic;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.035em;
+  text-shadow: 0 2px 14px rgba(30, 20, 13, 0.55);
 }
 
 .btn-gallery-zoom {
-  padding: 0.4rem 0.75rem;
-  border: 1px solid rgba(255, 250, 241, 0.6);
-  background: rgba(73, 48, 34, 0.72);
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(255, 250, 241, 0.72);
+  border-radius: 24px;
+  background: rgba(73, 48, 34, 0.58);
   color: #fffaf1;
   font-size: 0.75rem;
   backdrop-filter: blur(6px);
+  transform: translateY(8px);
+  transition: background 250ms ease, color 250ms ease, transform 350ms ease, border-color 250ms ease;
+}
+
+.gallery-carousel-slide.is-active .btn-gallery-zoom {
+  transform: translateY(0);
 }
 
 .btn-gallery-zoom:hover {
@@ -7498,19 +7692,19 @@ body.wedding-web-active {
 
 .gallery-nav-btn {
   top: 50%;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 250, 241, 0.8);
-  background: rgba(73, 48, 34, 0.82);
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 250, 241, 0.84);
+  background: rgba(73, 48, 34, 0.7);
   color: #fffaf1;
-  box-shadow: 0 4px 14px rgba(35, 23, 16, 0.22);
-  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 22px rgba(35, 23, 16, 0.24);
+  backdrop-filter: blur(12px);
 }
 
 .gallery-nav-btn:hover {
   background: #fffaf1;
   color: #513725;
-  box-shadow: 0 5px 16px rgba(35, 23, 16, 0.2);
+  box-shadow: 0 8px 22px rgba(35, 23, 16, 0.2);
 }
 
 .gallery-prev {
@@ -7523,8 +7717,8 @@ body.wedding-web-active {
 
 .gallery-carousel-footer {
   justify-content: space-between;
-  margin: 1rem 0 0;
-  padding: 0 0.25rem;
+  margin: 1.1rem 0 0;
+  padding: 0.15rem 0.35rem 0;
 }
 
 .gallery-dots {
@@ -7533,19 +7727,21 @@ body.wedding-web-active {
 }
 
 .gallery-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border: 0;
   background: #c6b8a8;
+  transition: width 350ms cubic-bezier(0.2, 0.8, 0.2, 1), background 250ms ease, transform 250ms ease;
 }
 
 .gallery-dot:hover {
   background: #9b8065;
+  transform: scale(1.2);
 }
 
 .gallery-dot.active {
-  width: 22px;
-  background: #80634e;
+  width: 30px;
+  background: linear-gradient(90deg, #80634e, #b69876);
   box-shadow: none;
 }
 
@@ -7581,46 +7777,49 @@ body.wedding-web-active {
   }
 
   .gallery-carousel-wrapper {
-    padding: 0.65rem 0.65rem 0.7rem;
-    border-radius: 10px;
+    padding: 0;
+    border-radius: 0;
   }
 
   .gallery-carousel-track {
-    height: clamp(250px, 78vw, 340px);
+    height: clamp(360px, 105vw, 460px);
   }
 
   .gallery-carousel-slide {
-    width: 74%;
-    border-width: 5px;
+    width: 66%;
+    border-width: 1px;
+    border-radius: 3px;
   }
 
   .gallery-carousel-slide.is-active {
-    width: 74%;
+    width: 66%;
   }
 
   .gallery-carousel-slide.is-prev,
   .gallery-carousel-slide.is-next {
-    width: 54%;
+    width: 50%;
   }
 
   .gallery-carousel-slide.is-prev {
-    left: 12%;
+    left: 18%;
+    transform: translate(-50%, -50%) perspective(700px) rotateY(9deg) scale(0.84);
   }
 
   .gallery-carousel-slide.is-next {
-    left: 88%;
+    left: 82%;
+    transform: translate(-50%, -50%) perspective(700px) rotateY(-9deg) scale(0.84);
   }
 
   .gallery-slide-overlay {
-    padding: 0.75rem;
+    padding: 0.8rem;
   }
 
   .gallery-slide-caption {
-    font-size: 0.85rem;
+    font-size: 0.92rem;
   }
 
   .btn-gallery-zoom {
-    padding: 0.35rem;
+    padding: 0.42rem;
   }
 
   .btn-gallery-zoom span {
@@ -7628,8 +7827,8 @@ body.wedding-web-active {
   }
 
   .gallery-nav-btn {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
   }
 
   .gallery-prev {
@@ -7638,5 +7837,25 @@ body.wedding-web-active {
 
   .gallery-next {
     right: 0.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .envelope-flap,
+  .envelope-card,
+  .envelope-front-content,
+  .envelope-wax-seal {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .gallery-carousel-slide,
+  .gallery-slide-inner img,
+  .gallery-slide-overlay,
+  .gallery-nav-btn,
+  .gallery-dot,
+  .btn-gallery-zoom {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
