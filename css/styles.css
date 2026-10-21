@@ -4163,8 +4163,7 @@ body.wedding-web-active {
 
 .btn-reopen-envelope,
 .btn-petals-toggle,
-.btn-music-toggle,
-.btn-back-to-panel {
+.btn-music-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -4181,8 +4180,7 @@ body.wedding-web-active {
 
 .btn-reopen-envelope:hover,
 .btn-petals-toggle:hover,
-.btn-music-toggle:hover,
-.btn-back-to-panel:hover {
+.btn-music-toggle:hover {
   background: var(--romance-gold);
   color: #120A14;
   border-color: var(--romance-gold);

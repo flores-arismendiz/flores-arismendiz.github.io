@@ -142,12 +142,6 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
             <span class="music-icon-disc">🎵</span>
             <span class="music-label">${isAudioPlaying ? 'Pausar' : 'Música'}</span>
           </button>
-
-          <!-- Botón Volver al Panel de Bodas -->
-          <button class="btn-back-to-panel" id="btn-back-to-admin">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            <span class="nav-action-label">Panel</span>
-          </button>
         </div>
       </div>
     </header>
@@ -707,14 +701,6 @@ function setupCountdownTimer(targetDateStr) {
 // EVENTOS, SOBRE NUPCIAL Y FORMULARIO RSVP
 // -------------------------------------------------------------
 function setupWebEventListeners(guest) {
-  // Volver al Panel de Bodas
-  const btnBack = document.getElementById('btn-back-to-admin');
-  if (btnBack) {
-    btnBack.addEventListener('click', () => {
-      closeWeddingWeb();
-    });
-  }
-
   // ---- SOBRE NUPCIAL INTERACTIVO CON LACRE ----
   const envelopeOverlay = document.getElementById('wedding-envelope-overlay');
   const envelopeCard = document.getElementById('envelope-card');

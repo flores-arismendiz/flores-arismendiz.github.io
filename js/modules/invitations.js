@@ -1158,7 +1158,7 @@ function attachDynamicListeners() {
     const currentTemplate = (state.invitationTemplates || []).find(t => t.id === selectedTemplateId) || state.invitationTemplates[0];
     const previewGuest = (state.guests || []).find(g => g.id === previewGuestId) || state.guests[0] || { name: 'Invitado', passes: 2, token: 'demo' };
     const compiled = compileInvitationMessage(currentTemplate.content, previewGuest, state.settings);
-    window.open(`https://wa.me/?text=${encodeURIComponent(compiled)}`, '_blank');
+    window.open(createWhatsAppUrl('', compiled), '_blank');
   });
 
   // Formulario de Datos Maestros
@@ -1363,9 +1363,7 @@ export function sendGuestWhatsApp(guestId) {
   store.markGuestInvitationSent(guestId, template.id, compiled);
 
   const phone = cleanPhoneNumber(guest.phone);
-  const waUrl = phone 
-    ? `https://wa.me/${phone}?text=${encodeURIComponent(compiled)}`
-    : `https://wa.me/?text=${encodeURIComponent(compiled)}`;
+  const waUrl = createWhatsAppUrl(phone, compiled);
 
   window.open(waUrl, '_blank');
   showToast(`Invitación enviada a ${guest.name}. Estado actualizado.`);
@@ -1640,7 +1638,14 @@ export function compileInvitationMessage(templateContent, guest, settings) {
     .replace(/{vestimenta}/g, settings.dressCode || 'Elegante / Formal')
     .replace(/{pases}/g, passesText)
     .replace(/{link_invitacion}/g, invitationWebUrl)
-    .replace(/{link_confirmacion}/g, confirmationUrl);
+    .replace(/{link_confirmacion}/g, confirmationUrl)
+    .replace(/\uFFFD/g, '✦');
+}
+
+function createWhatsAppUrl(phone, message) {
+  const url = new URL(phone ? `https://wa.me/${phone}` : 'https://wa.me/');
+  url.searchParams.set('text', message);
+  return url.toString();
 }
 
 function getInvitationWebUrl(token) {
