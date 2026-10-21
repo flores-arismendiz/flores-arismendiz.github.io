@@ -16,22 +16,22 @@ export const DEFAULT_INVITATION_TEMPLATES = [
     id: "tpl-minimalist-web",
     name: "Invitación Minimalista con Link Web (Recomendada)",
     tagline: "Diseño limpio y elegante que dirige a tu Web de Boda interactiva",
-    headerTitle: "🕊️ Nuestra Boda & Invitación Web 💍",
-    content: `🕊️ *{novia} & {novio}*
+    headerTitle: "💌 Nuestra Boda 💍",
+    content: `💍 *{novia} & {novio}*
 _Nos unimos en Santo Matrimonio_
 
 Querido(a) *{nombre}*,
 
-Hemos preparado con mucho amor una invitación digital muy especial para ti. En ella podrás conocer nuestra historia, ver fotos, mapa interactivo para llegar a la ceremonia y recepción, música y confirmar tu asistencia:
+Hemos preparado con mucho amor una invitación digital para ti. En ella podrás conocer nuestra historia, ver fotos, encontrar la ubicación, escuchar música y confirmar tu asistencia:
 
-💌 *Abre tu invitación web aquí:*
+🔗 *Abre tu invitación aquí:*
 {link_invitacion}
 
-🎟️ *Pases reservados para ti:* {pases}
-Por favor acompáñanos y ayúdanos confirmando tu asistencia desde el enlace.
+🎟 *Pases reservados:* {pases}
+✅ Confirma tu asistencia desde el enlace.
 
-¡Esperamos celebrar este gran día contigo! ✨`,
-    updatedAt: "2026-10-20T00:00:00Z"
+¡Esperamos celebrar este gran día contigo! ❤️`,
+    updatedAt: "2026-10-20T20:50:00Z"
   },
   {
     id: "tpl-1",

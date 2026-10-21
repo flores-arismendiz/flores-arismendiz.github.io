@@ -1,6 +1,6 @@
 // Módulo 4: Invitaciones WhatsApp & Web Nupcial Interactiva (Estilo ChungDoi)
 import { store } from '../store.js';
-import { DEFAULT_GUESTS, DEFAULT_WEDDING_WEB } from '../data.js';
+import { DEFAULT_GUESTS, DEFAULT_INVITATION_TEMPLATES, DEFAULT_WEDDING_WEB } from '../data.js';
 import { uploadWeddingMusic } from '../supabase.js';
 import { renderWeddingWebPage } from './wedding_web.js';
 
@@ -1328,22 +1328,13 @@ function deleteTemplateConfirm(templateId) {
 
 function resetTemplateDefault(templateId) {
   if (confirm('¿Deseas restaurar la redacción predeterminada de esta plantilla?')) {
-    const defaultText = `🕊️ *{novia} & {novio}*
-_Nos unimos en Santo Matrimonio_
+    const defaultTemplate = DEFAULT_INVITATION_TEMPLATES.find(template => template.id === templateId);
+    if (!defaultTemplate) return;
 
-Querido(a) *{nombre}*,
-
-Hemos preparado con mucho amor una invitación digital interactiva para ti con todos los detalles de nuestra boda (fotos, música, mapa interactivo y confirmación):
-
-💌 *Abre tu invitación web aquí:*
-{link_invitacion}
-
-🎟️ *Pases reservados para ti:* {pases}
-Por favor acompáñanos y confírmanos tu asistencia desde el enlace.
-
-¡Esperamos celebrar este gran día contigo! ✨`;
-
-    store.updateInvitationTemplate(templateId, { content: defaultText });
+    store.updateInvitationTemplate(templateId, {
+      content: defaultTemplate.content,
+      headerTitle: defaultTemplate.headerTitle
+    });
     showToast('Plantilla restaurada a los valores predeterminados');
     renderInvitationsView();
   }

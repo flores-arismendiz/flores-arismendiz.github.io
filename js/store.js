@@ -1,7 +1,21 @@
 // Gestor de Estado Centralizado y Persistencia en LocalStorage
-import { INITIAL_DATA, DEFAULT_CATEGORIES } from './data.js';
+import { INITIAL_DATA, DEFAULT_CATEGORIES, DEFAULT_INVITATION_TEMPLATES } from './data.js';
 
 const STORAGE_KEY = 'boda_catolica_db_v1';
+const LEGACY_MINIMALIST_TEMPLATE_CONTENT = `🕊️ *{novia} & {novio}*
+_Nos unimos en Santo Matrimonio_
+
+Querido(a) *{nombre}*,
+
+Hemos preparado con mucho amor una invitación digital muy especial para ti. En ella podrás conocer nuestra historia, ver fotos, mapa interactivo para llegar a la ceremonia y recepción, música y confirmar tu asistencia:
+
+💌 *Abre tu invitación web aquí:*
+{link_invitacion}
+
+🎟️ *Pases reservados para ti:* {pases}
+Por favor acompáñanos y ayúdanos confirmando tu asistencia desde el enlace.
+
+¡Esperamos celebrar este gran día contigo! ✨`;
 
 class Store {
   constructor() {
@@ -27,6 +41,13 @@ class Store {
   }
 
   normalizeState(parsed) {
+    const defaultMinimalistTemplate = DEFAULT_INVITATION_TEMPLATES.find(template => template.id === 'tpl-minimalist-web');
+    const invitationTemplates = parsed.invitationTemplates?.length
+      ? parsed.invitationTemplates.map(template => template.id === defaultMinimalistTemplate?.id
+          && template.content === LEGACY_MINIMALIST_TEMPLATE_CONTENT
+        ? { ...template, ...defaultMinimalistTemplate }
+        : template)
+      : [...(INITIAL_DATA.invitationTemplates || [])];
     const baseWeb = { ...(INITIAL_DATA.settings.weddingWeb || {}) };
     const savedWeb = parsed.settings?.weddingWeb || {};
     const weddingWeb = { ...baseWeb, ...savedWeb };
@@ -47,9 +68,7 @@ class Store {
       tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
       savings: Array.isArray(parsed.savings) ? parsed.savings : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
-      invitationTemplates: parsed.invitationTemplates?.length
-        ? parsed.invitationTemplates
-        : [...(INITIAL_DATA.invitationTemplates || [])],
+      invitationTemplates,
       guests: Array.isArray(parsed.guests) ? parsed.guests : [...(INITIAL_DATA.guests || [])]
     };
   }
