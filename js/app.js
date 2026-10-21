@@ -62,6 +62,7 @@ function initApp() {
   // Suscribirse para actualizar contadores en el header y sidebar
   store.subscribe(updateHeaderBadges);
   setupCloudAccount({
+    requireAuthentication: false,
     onAuthenticated: () => {
       if (appLayout) appLayout.style.display = '';
       setupCountdown();
@@ -69,7 +70,10 @@ function initApp() {
       navigateToTab('dashboard');
     },
     onUnauthenticated: () => {
-      if (appLayout) appLayout.style.display = 'none';
+      if (appLayout) appLayout.style.display = '';
+      setupCountdown();
+      updateHeaderBadges();
+      navigateToTab('dashboard');
     }
   });
 }

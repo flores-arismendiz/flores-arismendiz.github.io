@@ -163,6 +163,7 @@ export const DEFAULT_GUESTS = [
 ];
 
 export const DEFAULT_WEDDING_WEB = {
+  publicSiteUrl: "https://flores-arismendiz.github.io/",
   heroTitle: "Nuestra Boda Católica",
   heroSubtitle: "«Lo que Dios ha unido, que no lo separe el hombre»",
   scriptureVerse: "«El amor es paciente, es bondadoso. El amor no tiene envidia, no es jactancioso, no se envanece... Todo lo sufre, todo lo cree, todo lo espera, todo lo soporta. El amor nunca deja de ser.» (1 Corintios 13, 4-8)",

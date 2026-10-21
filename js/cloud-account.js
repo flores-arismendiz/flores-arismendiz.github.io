@@ -8,19 +8,22 @@ let connectingPromise = null;
 let onAuthenticated = () => {};
 let onUnauthenticated = () => {};
 let authRequired = false;
+let authenticationRequired = true;
 
 export async function setupCloudAccount(options = {}) {
   onAuthenticated = options.onAuthenticated || (() => {});
   onUnauthenticated = options.onUnauthenticated || (() => {});
+  authenticationRequired = options.requireAuthentication !== false;
   const button = document.getElementById('topbar-btn-account');
   if (!button) return;
 
   button.addEventListener('click', () => openAccountModal());
   updateAccountButton(button);
   if (!isSupabaseConfigured()) {
-    authRequired = true;
-    setAuthenticationGate(true);
-    openAccountModal();
+    authRequired = authenticationRequired;
+    setAuthenticationGate(authenticationRequired);
+    if (authenticationRequired) openAccountModal();
+    else onUnauthenticated();
     return;
   }
 
@@ -30,9 +33,10 @@ export async function setupCloudAccount(options = {}) {
     if (error) throw error;
     if (data.session) await applySession(data.session);
     else {
-      authRequired = true;
-      setAuthenticationGate(true);
-      openAccountModal();
+      authRequired = authenticationRequired;
+      setAuthenticationGate(authenticationRequired);
+      if (authenticationRequired) openAccountModal();
+      else onUnauthenticated();
     }
 
     client.auth.onAuthStateChange((_event, session) => {
@@ -41,10 +45,15 @@ export async function setupCloudAccount(options = {}) {
       }, 0);
     });
   } catch (error) {
-    authRequired = true;
-    setAuthenticationGate(true);
-    renderAuthForm('signin', error.message);
-    document.getElementById('global-modal-overlay')?.classList.add('active');
+    authRequired = authenticationRequired;
+    setAuthenticationGate(authenticationRequired);
+    if (authenticationRequired) {
+      renderAuthForm('signin', error.message);
+      document.getElementById('global-modal-overlay')?.classList.add('active');
+    } else {
+      onUnauthenticated();
+      showCloudError(error);
+    }
   }
 }
 
@@ -70,19 +79,21 @@ async function applySession(session) {
     }
   } else if (activeUserId) {
     activeUserId = null;
-    authRequired = true;
-    setAuthenticationGate(true);
+    authRequired = authenticationRequired;
+    setAuthenticationGate(authenticationRequired);
     store.disconnectCloud();
     onUnauthenticated();
-    openAccountModal();
+    if (authenticationRequired) openAccountModal();
   }
   updateAccountButton(document.getElementById('topbar-btn-account'));
 }
 
 function updateAccountButton(button) {
   if (!button) return;
-  button.textContent = activeUserId ? 'Cuenta conectada' : 'Conectar nube';
-  button.title = activeUserId ? 'Administrar cuenta de Supabase' : 'Conectar con Supabase';
+  button.textContent = activeUserId ? 'Supabase conectado' : 'Conectar Supabase';
+  button.title = activeUserId
+    ? 'Sincronización activa. La sesión se recuerda en este navegador.'
+    : 'Inicia sesión una vez para sincronizar. Supabase recordará la sesión en este navegador.';
 }
 
 function openAccountModal() {

@@ -1,6 +1,7 @@
 // Módulo 4: Invitaciones WhatsApp & Web Nupcial Interactiva (Estilo ChungDoi)
 import { store } from '../store.js';
 import { DEFAULT_GUESTS, DEFAULT_WEDDING_WEB } from '../data.js';
+import { uploadWeddingMusic } from '../supabase.js';
 import { renderWeddingWebPage } from './wedding_web.js';
 
 let currentSubTab = 'guests'; // 'guests', 'web_admin', 'designer', 'settings'
@@ -182,7 +183,7 @@ export function renderInvitationsView() {
     <!-- Contenido Dinámico de la Sub-Pestaña -->
     <div class="inv-tab-content-wrap">
       ${currentSubTab === 'guests' ? renderGuestsListSubTab(filteredGuests, templates, settings) : ''}
-      ${currentSubTab === 'web_admin' ? renderWeddingWebAdminSubTab(web, settings) : ''}
+      ${currentSubTab === 'web_admin' ? renderWeddingWebAdminSubTab(web, settings, guests) : ''}
       ${currentSubTab === 'designer' ? renderDesignerSubTab(templates, currentTemplate, guests, settings) : ''}
       ${currentSubTab === 'settings' ? renderWeddingDetailsSubTab(settings) : ''}
     </div>
@@ -209,19 +210,25 @@ function renderGuestsListSubTab(filteredGuests, templates, settings) {
         </div>
 
         <div class="inv-filter-dropdowns">
-          <select id="inv-filter-status" class="filter-select">
-            <option value="all" ${currentFilter.status === 'all' ? 'selected' : ''}>Todos los Estados</option>
-            <option value="Confirmado" ${currentFilter.status === 'Confirmado' ? 'selected' : ''}>✅ Confirmados</option>
-            <option value="Pendiente" ${currentFilter.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendientes</option>
-            <option value="Actualizada enviada" ${currentFilter.status === 'Actualizada enviada' ? 'selected' : ''}>🔄 Actualizada enviada</option>
-            <option value="Sin enviar" ${currentFilter.status === 'Sin enviar' ? 'selected' : ''}>⚪ Sin enviar</option>
-            <option value="Declinado" ${currentFilter.status === 'Declinado' ? 'selected' : ''}>❌ Declinados</option>
-          </select>
+          <div class="inv-filter-field">
+            <label class="inv-filter-label" for="inv-filter-status">Filtrar por estado</label>
+            <select id="inv-filter-status" class="filter-select">
+              <option value="all" ${currentFilter.status === 'all' ? 'selected' : ''}>Todos los estados</option>
+              <option value="Confirmado" ${currentFilter.status === 'Confirmado' ? 'selected' : ''}>Confirmados</option>
+              <option value="Pendiente" ${currentFilter.status === 'Pendiente' ? 'selected' : ''}>Pendientes</option>
+              <option value="Actualizada enviada" ${currentFilter.status === 'Actualizada enviada' ? 'selected' : ''}>Actualizada enviada</option>
+              <option value="Sin enviar" ${currentFilter.status === 'Sin enviar' ? 'selected' : ''}>Sin enviar</option>
+              <option value="Declinado" ${currentFilter.status === 'Declinado' ? 'selected' : ''}>Declinados</option>
+            </select>
+          </div>
 
-          <select id="inv-filter-template" class="filter-select">
-            <option value="all" ${currentFilter.templateId === 'all' ? 'selected' : ''}>Todas las Plantillas</option>
-            ${templates.map(t => `<option value="${t.id}" ${currentFilter.templateId === t.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
-          </select>
+          <div class="inv-filter-field">
+            <label class="inv-filter-label" for="inv-filter-template">Filtrar por invitación</label>
+            <select id="inv-filter-template" class="filter-select">
+              <option value="all" ${currentFilter.templateId === 'all' ? 'selected' : ''}>Todas las plantillas</option>
+              ${templates.map(t => `<option value="${t.id}" ${currentFilter.templateId === t.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -344,10 +351,9 @@ function renderGuestsListSubTab(filteredGuests, templates, settings) {
 // -------------------------------------------------------------
 // SUB-TAB 2: ADMINISTRADOR DE LA WEB DE INVITACIÓN (CHUNGDOI STYLE)
 // -------------------------------------------------------------
-function renderWeddingWebAdminSubTab(web, settings) {
-  const currentOrigin = window.location.origin;
-  const currentPath = window.location.pathname;
-  const publicWebUrl = `${currentOrigin}${currentPath}?invitacion=demo`;
+function renderWeddingWebAdminSubTab(web, settings, guests) {
+  const firstGuest = guests.find(guest => guest.token);
+  const publicWebUrl = getInvitationWebUrl(firstGuest?.token);
 
   return `
     <div class="web-admin-wrapper">
@@ -358,7 +364,7 @@ function renderWeddingWebAdminSubTab(web, settings) {
           <p class="panel-section-sub">Personaliza fotos, video, música, mapas de ubicación y cuentas de regalos de tu web estilo ChungDoi</p>
         </div>
         <div class="web-admin-cta-group">
-          <button type="button" class="btn btn-outline btn-copy-public-link" data-url="${publicWebUrl}" title="Copiar enlace web de prueba">
+          <button type="button" class="btn btn-outline btn-copy-public-link" data-url="${escapeHtml(publicWebUrl)}" title="Copiar enlace web para probar desde un celular">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
             <span>Copiar Enlace Web</span>
           </button>
@@ -370,6 +376,12 @@ function renderWeddingWebAdminSubTab(web, settings) {
       </div>
 
       <form id="form-wedding-web-admin" class="web-admin-form">
+        <div class="web-admin-card public-site-url-card">
+          <label class="form-label" for="web-public-site-url">URL pública de la invitación</label>
+          <input type="url" id="web-public-site-url" class="form-input" value="${escapeHtml(web.publicSiteUrl || DEFAULT_WEDDING_WEB.publicSiteUrl)}" placeholder="https://tudominio.com/" required>
+          <span class="form-hint">Usa la dirección publicada de GitHub Pages para que tus invitados puedan abrir el enlace desde cualquier celular. Guarda los cambios y vuelve a copiar el enlace de prueba.</span>
+        </div>
+
         <!-- SECCIÓN 1: FOTOS PRINCIPALES & PORTADA -->
         <div class="web-admin-card">
           <div class="card-section-header">
@@ -430,9 +442,19 @@ function renderWeddingWebAdminSubTab(web, settings) {
 
           <div class="form-row-2">
             <div class="form-group">
-              <label class="form-label" for="web-music-url">Música de Fondo (URL Audio MP3)</label>
-              <input type="text" id="web-music-url" class="form-input" value="${escapeHtml(web.musicUrl || '')}" placeholder="https://ejemplo.com/cancion-nupcial.mp3">
-              <span class="form-hint">Viene con melodía romántica de piano predeterminada</span>
+              <label class="form-label" for="web-music-url">Música de Fondo</label>
+              <input type="text" id="web-music-url" class="form-input" value="${escapeHtml(web.musicUrl || '')}" placeholder="URL opcional del MP3">
+              <div class="music-upload-row">
+                <label class="btn btn-secondary btn-sm btn-file-upload">
+                  <span>Subir canción MP3</span>
+                  <input type="file" id="web-music-file" class="hidden-file-input" accept=".mp3,audio/mpeg">
+                </label>
+                <span class="form-hint">MP3 de hasta 20 MB. Se guardará en Supabase Storage.</span>
+              </div>
+              <p id="web-music-upload-status" class="form-hint music-upload-status" role="status" aria-live="polite"></p>
+              <audio id="web-music-preview" class="music-preview" controls preload="none" ${web.musicUrl ? `src="${escapeHtml(web.musicUrl)}"` : 'hidden'}>
+                Tu navegador no admite la reproducción de audio.
+              </audio>
             </div>
 
             <div class="form-group">
@@ -885,7 +907,12 @@ function attachDynamicListeners() {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       currentFilter.search = e.target.value;
+      const selectionStart = searchInput.selectionStart;
+      const selectionEnd = searchInput.selectionEnd;
       renderInvitationsView();
+      const updatedSearchInput = document.getElementById('inv-search-input');
+      updatedSearchInput?.focus({ preventScroll: true });
+      updatedSearchInput?.setSelectionRange(selectionStart, selectionEnd);
     });
   }
 
@@ -1004,6 +1031,49 @@ function attachDynamicListeners() {
     });
   });
 
+  document.getElementById('web-music-file')?.addEventListener('change', async event => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const status = document.getElementById('web-music-upload-status');
+    const uploadLabel = input.closest('.btn-file-upload');
+    const uploadText = uploadLabel?.querySelector('span');
+    if (file.size > 20 * 1024 * 1024) {
+      if (status) status.textContent = 'El archivo MP3 no puede superar los 20 MB.';
+      input.value = '';
+      return;
+    }
+    if (!/\.mp3$/i.test(file.name) || (file.type && file.type !== 'audio/mpeg')) {
+      if (status) status.textContent = 'Selecciona un archivo en formato MP3.';
+      input.value = '';
+      return;
+    }
+
+    input.disabled = true;
+    if (uploadText) uploadText.textContent = 'Subiendo canción...';
+    if (status) status.textContent = 'Subiendo el MP3 a Supabase Storage...';
+    try {
+      const musicUrl = await uploadWeddingMusic(file);
+      const musicUrlInput = document.getElementById('web-music-url');
+      const preview = document.getElementById('web-music-preview');
+      if (musicUrlInput) musicUrlInput.value = musicUrl;
+      if (preview) {
+        preview.src = musicUrl;
+        preview.hidden = false;
+        preview.load();
+      }
+      if (status) status.textContent = 'Canción subida. Guarda los cambios para publicarla en tu invitación.';
+    } catch (error) {
+      console.error('No se pudo subir la canción de la invitación:', error);
+      if (status) status.textContent = error.message;
+    } finally {
+      input.disabled = false;
+      if (uploadText) uploadText.textContent = 'Subir canción MP3';
+      input.value = '';
+    }
+  });
+
   // Guardar Formulario del Administrador Web
   const formWebAdmin = document.getElementById('form-wedding-web-admin');
   if (formWebAdmin) {
@@ -1118,6 +1188,7 @@ function saveWeddingWebSettings() {
     ...currentWeb,
     coverPhoto: document.getElementById('web-cover-photo')?.value.trim() || currentWeb.coverPhoto,
     couplePhoto: document.getElementById('web-couple-photo')?.value.trim() || currentWeb.couplePhoto,
+    publicSiteUrl: document.getElementById('web-public-site-url')?.value.trim() || DEFAULT_WEDDING_WEB.publicSiteUrl,
     loveStory: document.getElementById('web-love-story')?.value.trim() || currentWeb.loveStory,
     musicUrl: document.getElementById('web-music-url')?.value.trim() || currentWeb.musicUrl,
     videoUrl: document.getElementById('web-video-url')?.value.trim() || '',
@@ -1573,9 +1644,13 @@ export function compileInvitationMessage(templateContent, guest, settings) {
 }
 
 function getInvitationWebUrl(token) {
-  const origin = window.location.origin;
-  const path = window.location.pathname;
-  return `${origin}${path}?invitacion=${token}`;
+  const state = store.getState();
+  const configuredUrl = state.settings?.weddingWeb?.publicSiteUrl || DEFAULT_WEDDING_WEB.publicSiteUrl;
+  const publicUrl = new URL(configuredUrl);
+  publicUrl.search = '';
+  publicUrl.hash = '';
+  if (token) publicUrl.searchParams.set('invitacion', token);
+  return publicUrl.toString();
 }
 
 export function formatWhatsAppTextToHtml(text) {
