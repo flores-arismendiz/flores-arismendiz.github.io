@@ -62,22 +62,24 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
           <!-- Botón de Sello de Lacre Realista -->
           <div class="envelope-wax-seal" id="envelope-seal-trigger" title="Haz clic en el sello para abrir tu invitación">
             <div class="wax-seal-body">
-              <span class="wax-seal-cross">✝</span>
-              <span class="wax-seal-monogram">${escapeHtml(groomName.charAt(0))}&amp;${escapeHtml(brideName.charAt(0))}</span>
+              <span class="wax-seal-heart" aria-hidden="true">♥</span>
             </div>
             <div class="wax-pulse-ring"></div>
           </div>
 
           <!-- Cara Frontal del Sobre con Invitado Personalizado -->
           <div class="envelope-front-content">
-            <div class="envelope-sacred-rings">💍🕊️</div>
-            <span class="envelope-subtitle">Nuestra Boda Católica</span>
-            <h2 class="envelope-couple-script">${escapeHtml(groomName)} &amp; ${escapeHtml(brideName)}</h2>
+            <span class="envelope-subtitle">Nuestra Boda</span>
+            <h2 class="envelope-couple-script">
+              <span>${escapeHtml(groomName)}</span>
+              <span class="envelope-name-amp">&amp;</span>
+              <span>${escapeHtml(brideName)}</span>
+            </h2>
             <div class="envelope-filigree-divider">✦ ❖ ✦</div>
 
             <div class="envelope-recipient-badge">
-              <span class="recipient-label">Invitación de Honor para:</span>
-              <h3 class="recipient-name">${guest ? escapeHtml(guest.name) : 'Apreciada Familia y Amigos'}</h3>
+              <span class="recipient-label">${guest ? 'Invitación especial para' : 'Les invitamos cordialmente'}</span>
+              ${guest ? `<h3 class="recipient-name">${escapeHtml(guest.name)}</h3>` : ''}
               ${guest ? `
                 <div class="recipient-passes-tag">
                   🎟️ <strong>${guest.passes} Pase${guest.passes > 1 ? 's' : ''}</strong> Reservado${guest.passes > 1 ? 's' : ''}
@@ -147,7 +149,7 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
     </header>
 
     <!-- 1. HERO / PORTADA NUPCIAL ULTRA ROMÁNTICA -->
-    <section class="web-hero-section" style="background-image: linear-gradient(180deg, rgba(18, 10, 24, 0.45) 0%, rgba(18, 10, 24, 0.8) 100%), url('${escapeHtml(web.coverPhoto || '')}');">
+    <section class="web-hero-section" style="background-image: linear-gradient(180deg, rgba(48, 32, 24, 0.42) 0%, rgba(48, 32, 24, 0.78) 100%), url('${escapeHtml(web.coverPhoto || '')}');">
       <div class="web-hero-vignette"></div>
       <div class="web-hero-content fade-in-up">
         <div class="web-sacred-symbol">✝</div>
@@ -424,7 +426,7 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
             </div>
 
             <div class="gallery-counter" id="gallery-counter">
-              <span class="gallery-counter-icon">📷</span>
+              <span class="gallery-counter-icon">FOTO</span>
               <span id="gallery-current">1</span> / <span>${galleryPhotos.length}</span>
             </div>
           </div>
@@ -602,7 +604,11 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
   `;
 
   // Inicializar audio y eventos
-  setupAudioPlayer(web.musicUrl);
+  const legacySampleUrls = [
+    'https://assets.mixkit.co/music/preview/mixkit-romantic-wedding-piano-melody-676.mp3',
+    'https://upload.wikimedia.org/wikipedia/commons/7/7b/FurElise.ogg'
+  ];
+  setupAudioPlayer(legacySampleUrls.includes(web.musicUrl) ? '' : web.musicUrl);
   setupCountdownTimer(weddingDateStr);
   setupWebEventListeners(guest);
 }
@@ -611,45 +617,63 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
 // CONTROLADOR DE AUDIO DE FONDO
 // -------------------------------------------------------------
 function setupAudioPlayer(musicUrl) {
-  if (!musicUrl) return;
+  const btnToggle = document.getElementById('btn-toggle-music');
+  if (!musicUrl) {
+    if (btnToggle) {
+      btnToggle.disabled = true;
+      btnToggle.title = 'No hay música configurada para esta invitación';
+      const label = btnToggle.querySelector('.music-label');
+      if (label) label.textContent = 'Sin música';
+    }
+    return;
+  }
 
   if (!audioElement) {
     audioElement = new Audio(musicUrl);
     audioElement.loop = true;
+    audioElement.addEventListener('error', () => {
+      isAudioPlaying = false;
+      updateMusicButton(false, 'Audio no disponible');
+      console.error('No se pudo cargar la música de la invitación:', audioElement.error, audioElement.src);
+    });
   } else {
     audioElement.src = musicUrl;
   }
 
-  const btnToggle = document.getElementById('btn-toggle-music');
   if (btnToggle) {
+    btnToggle.disabled = false;
+    btnToggle.title = isAudioPlaying ? 'Pausar música' : 'Reproducir melodía nupcial';
     btnToggle.onclick = () => {
       toggleMusicPlayback();
     };
   }
 }
 
+function updateMusicButton(isPlaying, labelText = isPlaying ? 'Pausar' : 'Música') {
+  const btnToggle = document.getElementById('btn-toggle-music');
+  if (!btnToggle) return;
+
+  btnToggle.classList.toggle('playing', isPlaying);
+  const label = btnToggle.querySelector('.music-label');
+  if (label) label.textContent = labelText;
+  btnToggle.title = isPlaying ? 'Pausar música' : 'Reproducir melodía nupcial';
+}
+
 function toggleMusicPlayback() {
   if (!audioElement) return;
-  const btnToggle = document.getElementById('btn-toggle-music');
 
   if (isAudioPlaying) {
     audioElement.pause();
     isAudioPlaying = false;
-    if (btnToggle) {
-      btnToggle.classList.remove('playing');
-      const label = btnToggle.querySelector('.music-label');
-      if (label) label.textContent = 'Música';
-    }
+    updateMusicButton(false);
   } else {
     audioElement.play().then(() => {
       isAudioPlaying = true;
-      if (btnToggle) {
-        btnToggle.classList.add('playing');
-        const label = btnToggle.querySelector('.music-label');
-        if (label) label.textContent = 'Pausar';
-      }
+      updateMusicButton(true);
     }).catch(err => {
-      console.log('Autoplay bloqueado por el navegador hasta interacción:', err);
+      isAudioPlaying = false;
+      updateMusicButton(false, 'Reintentar');
+      console.error('No se pudo reproducir la música de la invitación:', err);
     });
   }
 }
@@ -716,13 +740,12 @@ function setupWebEventListeners(guest) {
     if (audioElement && !isAudioPlaying) {
       audioElement.play().then(() => {
         isAudioPlaying = true;
-        const btnToggle = document.getElementById('btn-toggle-music');
-        if (btnToggle) {
-          btnToggle.classList.add('playing');
-          const label = btnToggle.querySelector('.music-label');
-          if (label) label.textContent = 'Pausar';
-        }
-      }).catch(() => {});
+        updateMusicButton(true);
+      }).catch(error => {
+        isAudioPlaying = false;
+        updateMusicButton(false, 'Reintentar');
+        console.error('No se pudo iniciar la música al abrir la invitación:', error);
+      });
     }
 
     // Desvanecer el sobre tras la animación de apertura de la solapa
@@ -873,6 +896,8 @@ function setupGalleryCarousel() {
   let current = 0;
   const slideDuration = 4500;
   let startX = 0;
+  let suppressSlideClick = false;
+  let clickSuppressionTimer = null;
 
   function resetProgressBar() {
     if (!progressFill) return;
@@ -886,7 +911,13 @@ function setupGalleryCarousel() {
 
   function goTo(idx) {
     current = (idx + total) % total;
-    track.style.transform = `translateX(-${current * 100}%)`;
+    slides.forEach((slide, i) => {
+      const offset = (i - current + total) % total;
+      const position = i === current ? 'active' : offset === 1 ? 'next' : offset === total - 1 ? 'prev' : 'hidden';
+      slide.classList.remove('is-active', 'is-prev', 'is-next', 'is-hidden');
+      slide.classList.add(`is-${position}`);
+      slide.setAttribute('aria-hidden', position === 'hidden' ? 'true' : 'false');
+    });
 
     dots.forEach((d, i) => d.classList.toggle('active', i === current));
     thumbs.forEach((t, i) => {
@@ -967,6 +998,12 @@ function setupGalleryCarousel() {
   track.addEventListener('touchend', (e) => {
     const diff = startX - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) {
+      suppressSlideClick = true;
+      if (clickSuppressionTimer) clearTimeout(clickSuppressionTimer);
+      clickSuppressionTimer = setTimeout(() => {
+        suppressSlideClick = false;
+        clickSuppressionTimer = null;
+      }, 500);
       goTo(diff > 0 ? current + 1 : current - 1);
     }
     startAutoSlide();
@@ -982,7 +1019,17 @@ function setupGalleryCarousel() {
 
   // Clic en la foto del slide para ampliar
   slides.forEach((slide, i) => {
-    slide.addEventListener('click', () => openLightbox(i));
+    slide.addEventListener('click', () => {
+      if (suppressSlideClick) {
+        suppressSlideClick = false;
+        if (clickSuppressionTimer) {
+          clearTimeout(clickSuppressionTimer);
+          clickSuppressionTimer = null;
+        }
+        return;
+      }
+      openLightbox(i);
+    });
   });
 
   // Lógica del Lightbox

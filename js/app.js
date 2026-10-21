@@ -8,7 +8,7 @@ import { initInvitationsModule, renderInvitationsView, handleRsvpLanding } from 
 import { renderWeddingWebPage } from './modules/wedding_web.js';
 import { initExportModule, renderExportView } from './modules/export.js';
 import { setupCloudAccount } from './cloud-account.js';
-import { getPublicWeddingGuest, getPublicWeddingSettings } from './supabase.js';
+import { getPublicWeddingGuest, getPublicWeddingSettings, isSupabaseConfigured } from './supabase.js';
 
 let activeTab = 'dashboard';
 
@@ -26,6 +26,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+  const isWeddingInvitationPath = /(?:^|\/)invitacion(?:\/index\.html|\/)?$/i.test(window.location.pathname);
+  if (isWeddingInvitationPath) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const webToken = urlParams.get('invitacion') || urlParams.get('boda') || urlParams.get('rsvp') || urlParams.get('confirm');
+    const isLocalPreview = urlParams.get('preview') === '1';
+    if (isLocalPreview && isSupabaseConfigured()) {
+      getPublicWeddingSettings()
+        .then(settings => renderWeddingWebPage(webToken, undefined, settings))
+        .catch(error => {
+          console.error('No se pudieron cargar los ajustes publicados para la vista previa; se mostrarán los datos locales:', error);
+          renderWeddingWebPage(webToken);
+        });
+      return;
+    }
+
+    if (isLocalPreview || !isSupabaseConfigured()) {
+      renderWeddingWebPage(webToken);
+      return;
+    }
+
+    const publicInvitation = webToken
+      ? Promise.all([
+        getPublicWeddingSettings(),
+        getPublicWeddingGuest(webToken)
+      ]).then(([settings, guest]) => renderWeddingWebPage(webToken, guest, settings))
+      : getPublicWeddingSettings().then(settings => renderWeddingWebPage(null, null, settings));
+
+    publicInvitation
+      .catch(error => {
+        console.error('No se pudo cargar la invitación pública de Supabase:', error);
+        showPublicWeddingError(error);
+      });
+    return;
+  }
+
   setupNavigation();
   setupSidebarDrawer();
   setupTopbarQuickActions();

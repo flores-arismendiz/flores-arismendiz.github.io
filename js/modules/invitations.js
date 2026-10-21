@@ -880,14 +880,14 @@ function attachDynamicListeners() {
   const btnOpenWeb = document.getElementById('btn-open-wedding-web');
   if (btnOpenWeb) {
     btnOpenWeb.addEventListener('click', () => {
-      renderWeddingWebPage();
+      window.open(createWeddingPreviewUrl(), '_blank', 'noopener,noreferrer');
     });
   }
 
   const btnAdminPreviewFull = document.getElementById('btn-admin-preview-full');
   if (btnAdminPreviewFull) {
     btnAdminPreviewFull.addEventListener('click', () => {
-      renderWeddingWebPage();
+      window.open(createWeddingPreviewUrl(), '_blank', 'noopener,noreferrer');
     });
   }
 
@@ -956,7 +956,7 @@ function attachDynamicListeners() {
   container.querySelectorAll('.btn-view-guest-web').forEach(btn => {
     btn.addEventListener('click', () => {
       const token = btn.getAttribute('data-token');
-      renderWeddingWebPage(token);
+      window.open(createWeddingPreviewUrl(token), '_blank', 'noopener,noreferrer');
     });
   });
 
@@ -1058,12 +1058,13 @@ function attachDynamicListeners() {
       const musicUrlInput = document.getElementById('web-music-url');
       const preview = document.getElementById('web-music-preview');
       if (musicUrlInput) musicUrlInput.value = musicUrl;
+      store.updateWeddingWeb({ musicUrl });
       if (preview) {
         preview.src = musicUrl;
         preview.hidden = false;
         preview.load();
       }
-      if (status) status.textContent = 'Canción subida. Guarda los cambios para publicarla en tu invitación.';
+      if (status) status.textContent = 'Canción subida y asignada a la invitación. Sincronizando la configuración...';
     } catch (error) {
       console.error('No se pudo subir la canción de la invitación:', error);
       if (status) status.textContent = error.message;
@@ -1578,7 +1579,7 @@ function openGuestPreviewModal(guestId) {
 
   document.getElementById('btn-modal-open-web')?.addEventListener('click', () => {
     closeModal();
-    renderWeddingWebPage(guest.token);
+    window.open(createWeddingPreviewUrl(guest.token), '_blank', 'noopener,noreferrer');
   });
 
   document.getElementById('btn-modal-send-wa')?.addEventListener('click', () => {
@@ -1643,10 +1644,21 @@ function getInvitationWebUrl(token) {
   const state = store.getState();
   const configuredUrl = state.settings?.weddingWeb?.publicSiteUrl || DEFAULT_WEDDING_WEB.publicSiteUrl;
   const publicUrl = new URL(configuredUrl);
+  const basePath = publicUrl.pathname.replace(/invitacion\/?$/i, '').replace(/\/?$/, '/');
+  publicUrl.pathname = `${basePath}invitacion/`;
   publicUrl.search = '';
   publicUrl.hash = '';
   if (token) publicUrl.searchParams.set('invitacion', token);
   return publicUrl.toString();
+}
+
+function createWeddingPreviewUrl(token = null) {
+  const previewUrl = new URL('invitacion/', window.location.href);
+  previewUrl.search = '';
+  previewUrl.hash = '';
+  if (token) previewUrl.searchParams.set('invitacion', token);
+  previewUrl.searchParams.set('preview', '1');
+  return previewUrl.toString();
 }
 
 export function formatWhatsAppTextToHtml(text) {

@@ -170,8 +170,8 @@ export const DEFAULT_WEDDING_WEB = {
   loveStory: "Nos conocimos en un retiro espiritual y desde entonces supimos que Dios tenía un plan maravilloso para nuestras vidas. Hoy, con inmensa gratitud en el corazón, hemos decidido dar el paso más importante: consagrarnos en santo matrimonio y caminar juntos para siempre.",
   coverPhoto: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80",
   couplePhoto: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
-  musicUrl: "https://assets.mixkit.co/music/preview/mixkit-romantic-wedding-piano-melody-676.mp3",
-  musicTitle: "Melodía Nupcial de Amor (Piano)",
+  musicUrl: "",
+  musicTitle: "",
   videoUrl: "", // Enlace opcional de YouTube / Vimeo / MP4
   videoEnabled: false,
   churchPhoto: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=900&q=80",
