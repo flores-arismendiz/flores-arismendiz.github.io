@@ -785,6 +785,15 @@ body {
   background: #FFFFFF;
 }
 
+#tasks-view-container .search-input-wrap svg {
+  left: 0.8rem;
+  pointer-events: none;
+}
+
+#tasks-view-container .search-input-wrap input#task-filter-search {
+  padding-left: 2.75rem;
+}
+
 .form-select, .form-control {
   width: 100%;
   padding: 0.45rem 0.65rem;

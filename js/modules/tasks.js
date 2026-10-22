@@ -43,6 +43,14 @@ export function renderTasksView() {
   const completedCount = tasks.filter(t => t.status === 'Completado').length;
   const totalCount = tasks.length;
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const activeElement = document.activeElement;
+  const searchSelection = activeElement?.id === 'task-filter-search'
+    ? {
+        start: activeElement.selectionStart,
+        end: activeElement.selectionEnd,
+        direction: activeElement.selectionDirection
+      }
+    : null;
 
   container.innerHTML = `
     <div class="module-header">
@@ -100,7 +108,7 @@ export function renderTasksView() {
         <label>Buscar</label>
         <div class="search-input-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="task-filter-search" placeholder="Buscar por nombre o nota..." value="${currentFilter.search}">
+          <input type="text" id="task-filter-search" placeholder="Buscar por nombre o nota..." value="${escapeHtml(currentFilter.search)}">
         </div>
       </div>
       <div class="filter-group">
@@ -151,6 +159,12 @@ export function renderTasksView() {
   `;
 
   attachInteractiveHandlers();
+
+  if (searchSelection) {
+    const searchInput = document.getElementById('task-filter-search');
+    searchInput?.focus({ preventScroll: true });
+    searchInput?.setSelectionRange(searchSelection.start, searchSelection.end, searchSelection.direction);
+  }
 }
 
 function renderKanbanBoard(tasks) {
@@ -591,4 +605,14 @@ function formatDate(dateStr) {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
   return dateStr;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
 }
