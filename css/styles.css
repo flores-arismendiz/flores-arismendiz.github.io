@@ -2077,6 +2077,32 @@ body {
   gap: 0.95rem;
 }
 
+.cloud-auth-status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 1.25rem;
+}
+
+.cloud-auth-spinner {
+  display: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+.cloud-auth-status.is-loading .cloud-auth-spinner {
+  display: inline-block;
+  animation: cloud-auth-spin 0.7s linear infinite;
+}
+
+@keyframes cloud-auth-spin {
+  to { transform: rotate(360deg); }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;

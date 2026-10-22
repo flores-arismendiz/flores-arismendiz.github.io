@@ -162,7 +162,10 @@ function renderAuthForm(mode, message = '') {
           <input class="form-control" id="cloud-password" type="password" minlength="8"
             autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" required>
         </div>
-        <p id="cloud-auth-message" role="status">${escapeHtml(message)}</p>
+        <p id="cloud-auth-message" class="cloud-auth-status" role="status" aria-live="polite">
+          <span class="cloud-auth-spinner" aria-hidden="true"></span>
+          <span id="cloud-auth-message-text">${escapeHtml(message)}</span>
+        </p>
         <button class="btn btn-primary" type="submit">${mode === 'signup' ? 'Crear cuenta' : 'Iniciar sesión'}</button>
         <button class="btn btn-outline" type="button" id="btn-cloud-auth-toggle">
           ${mode === 'signup' ? 'Ya tengo una cuenta' : 'Crear una cuenta nueva'}
@@ -176,10 +179,22 @@ function renderAuthForm(mode, message = '') {
   body.querySelector('#form-cloud-auth').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
+    if (form.dataset.submitting === 'true') return;
+
     const submitButton = form.querySelector('[type="submit"]');
+    const toggleButton = form.querySelector('#btn-cloud-auth-toggle');
     const status = form.querySelector('#cloud-auth-message');
+    const statusMessage = form.querySelector('#cloud-auth-message-text');
+    const originalButtonText = submitButton.textContent;
+    form.dataset.submitting = 'true';
+    form.setAttribute('aria-busy', 'true');
+    status.classList.add('is-loading');
     submitButton.disabled = true;
-    status.textContent = '';
+    submitButton.textContent = mode === 'signup' ? 'Creando cuenta...' : 'Iniciando sesión...';
+    toggleButton.disabled = true;
+    statusMessage.textContent = mode === 'signup'
+      ? 'Creando tu cuenta...'
+      : 'Iniciando sesión y sincronizando tus datos...';
     try {
       const email = form.querySelector('#cloud-email').value.trim();
       const password = form.querySelector('#cloud-password').value;
@@ -188,16 +203,26 @@ function renderAuthForm(mode, message = '') {
         : await client.auth.signInWithPassword({ email, password });
       if (result.error) throw result.error;
       if (!result.data.session) {
-        status.textContent = 'Revisa tu correo para confirmar la cuenta y luego inicia sesión.';
+        statusMessage.textContent = 'Revisa tu correo para confirmar la cuenta y luego inicia sesión.';
         return;
       }
+      statusMessage.textContent = mode === 'signup'
+        ? 'Cuenta creada. Sincronizando tus datos...'
+        : 'Sesión iniciada. Sincronizando tus datos...';
       await applySession(result.data.session);
       closeAccountModal();
       showCloudMessage('Conexión con Supabase establecida.');
     } catch (error) {
-      status.textContent = error.message;
+      statusMessage.textContent = error.message;
     } finally {
-      submitButton.disabled = false;
+      if (form.isConnected) {
+        delete form.dataset.submitting;
+        form.removeAttribute('aria-busy');
+        status.classList.remove('is-loading');
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+        toggleButton.disabled = false;
+      }
     }
   });
 }
