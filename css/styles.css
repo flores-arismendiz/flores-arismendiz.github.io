@@ -1230,6 +1230,10 @@ body {
   padding-left: 3.75rem;
 }
 
+#savings-view-container .goal-form .input-currency-wrap input.form-control {
+  padding-left: 3.75rem;
+}
+
 /* Savings Hero Card */
 .savings-hero-card {
   background: linear-gradient(135deg, #FAF7F0 0%, #FFFFFF 100%);
