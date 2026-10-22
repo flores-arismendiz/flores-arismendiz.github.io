@@ -6871,7 +6871,7 @@ body.wedding-web-active {
 .envelope-wax-seal {
   position: absolute;
   top: 0.5rem;
-  left: -3.4rem;
+  left: 0.5rem;
   transform: none;
 }
 
@@ -6882,9 +6882,9 @@ body.wedding-web-active {
 .envelope-wax-seal .wax-seal-body {
   width: 54px;
   height: 54px;
-  left: 50%;
+  left: 0;
   z-index: 1;
-  transform: translateX(-50%);
+  transform: none;
 }
 
 @keyframes invitation-cover-arrive {
@@ -7350,6 +7350,8 @@ body.wedding-web-active {
   .envelope-wax-seal .wax-seal-body {
     width: 42px;
     height: 42px;
+    left: 0;
+    transform: none;
   }
 
   .wax-seal-body {

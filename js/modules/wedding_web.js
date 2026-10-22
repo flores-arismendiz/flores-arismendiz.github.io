@@ -57,12 +57,12 @@ export function renderWeddingWebPage(token = null, publicGuest = undefined, publ
       <div class="envelope-stage">
         <div class="envelope-card${guest ? ' envelope-card-personalized' : ''}" id="envelope-card">
           ${web.coverPhoto ? `<img class="envelope-cover-image" src="${escapeHtml(web.coverPhoto)}" alt="" aria-hidden="true">` : ''}
-          <div class="envelope-front-content">
-            <div class="envelope-wax-seal" aria-hidden="true">
-              <div class="wax-seal-body">
-                <span class="wax-seal-heart">♥</span>
-              </div>
+          <div class="envelope-wax-seal" aria-hidden="true">
+            <div class="wax-seal-body">
+              <span class="wax-seal-heart">♥</span>
             </div>
+          </div>
+          <div class="envelope-front-content">
             <span class="envelope-subtitle">Nuestra Boda</span>
             <h2 class="envelope-couple-script">
               <span>${escapeHtml(groomName)}</span>
