@@ -6952,6 +6952,69 @@ body.wedding-web-active {
   font-weight: 500;
 }
 
+.envelope-card-personalized .envelope-couple-script {
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
+  line-height: 0.98;
+  margin: 0.25rem 0;
+}
+
+.envelope-card-personalized .envelope-filigree-divider {
+  margin: 0.2rem auto 0.25rem;
+}
+
+.envelope-card-personalized .envelope-date-preview {
+  margin: 0.3rem 0;
+  font-size: 1rem;
+}
+
+.envelope-card-personalized .envelope-recipient-badge {
+  margin: 0.3rem auto 0.2rem;
+}
+
+.envelope-card-personalized .recipient-label {
+  color: #857566;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.envelope-card-personalized .recipient-name {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.08rem auto 0;
+  padding: 0 0 0.22rem;
+  color: #513725;
+  font-family: var(--font-romance-serif);
+  font-size: 1.2rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.envelope-card-personalized .recipient-name::after {
+  position: absolute;
+  right: 20%;
+  bottom: 0;
+  left: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(128, 99, 78, 0.72), transparent);
+  content: "";
+}
+
+.envelope-card-personalized .recipient-passes-tag {
+  margin-top: 0.15rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.envelope-card-personalized .btn-envelope-open {
+  padding: 0.6rem 1.6rem;
+  font-size: 1rem;
+}
+
 .recipient-passes-tag {
   border-color: rgba(128, 99, 78, 0.24);
   background: rgba(128, 99, 78, 0.08);
@@ -7338,8 +7401,51 @@ body.wedding-web-active {
     padding: 1.5rem 0.75rem 0.5rem;
   }
 
+  .envelope-card.envelope-card-personalized {
+    aspect-ratio: 4 / 3;
+    padding: 0.5rem 0.65rem;
+  }
+
   .envelope-front-content {
     width: 100%;
+  }
+
+  .envelope-card-personalized .envelope-couple-script {
+    font-size: clamp(0.95rem, 4vw, 1.2rem);
+  }
+
+  .envelope-card-personalized .envelope-filigree-divider {
+    margin: 0 auto;
+  }
+
+  .envelope-card-personalized .envelope-date-preview {
+    margin: 0.1rem 0;
+    font-size: 0.78rem;
+  }
+
+  .envelope-card-personalized .envelope-recipient-badge {
+    margin: 0.1rem auto 0;
+  }
+
+  .envelope-card-personalized .recipient-label {
+    margin-bottom: 0;
+    font-size: 0.62rem;
+  }
+
+  .envelope-card-personalized .recipient-name {
+    margin-top: 0;
+    padding-bottom: 0.16rem;
+    font-size: clamp(0.88rem, 4.2vw, 1rem);
+  }
+
+  .envelope-card-personalized .recipient-passes-tag {
+    margin-top: 0;
+    padding: 0.08rem 0.3rem;
+    font-size: 0.6rem;
+  }
+
+  .envelope-card-personalized .btn-envelope-open {
+    padding: 0.35rem 1.2rem;
   }
 
   .envelope-wax-seal {
