@@ -63,7 +63,7 @@ class Store {
     }
 
     return {
-      settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}), weddingWeb },
+      settings: { ...INITIAL_DATA.settings, ...(parsed.settings || {}), currency: 'S/', weddingWeb },
       categories: parsed.categories?.length ? parsed.categories : [...DEFAULT_CATEGORIES],
       tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
       savings: Array.isArray(parsed.savings) ? parsed.savings : [],
@@ -239,7 +239,7 @@ class Store {
 
   // --- CONFIGURACIÓN ---
   updateSettings(newSettings) {
-    this.state.settings = { ...this.state.settings, ...newSettings };
+    this.state.settings = { ...this.state.settings, ...newSettings, currency: 'S/' };
     this.saveState();
   }
 
@@ -602,7 +602,7 @@ class Store {
   // --- SELECTORES Y CÁLCULOS ANALÍTICOS ---
   getMetrics() {
     const { settings, tasks, savings, expenses, categories } = this.state;
-    const currency = settings.currency || 'S/';
+    const currency = 'S/';
     const savingsGoal = settings.savingsGoal || 0;
 
     // Métricas de Ahorro

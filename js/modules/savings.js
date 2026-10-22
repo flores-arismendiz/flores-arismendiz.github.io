@@ -46,15 +46,8 @@ export function renderSavingsView() {
         </div>
         <form id="goal-settings-form" class="goal-form">
           <div class="form-row">
-            <div class="form-group col-4">
-              <label class="form-label" for="setting-currency">Moneda</label>
-              <select id="setting-currency" class="form-select">
-                <option value="S/" ${currency === 'S/' ? 'selected' : ''}>S/ (Soles)</option>
-                <option value="$" ${currency === '$' ? 'selected' : ''}>$ (USD Dólares)</option>
-              </select>
-            </div>
-            <div class="form-group col-8">
-              <label class="form-label" for="setting-goal">Monto Meta Total</label>
+            <div class="form-group col-12">
+              <label class="form-label" for="setting-goal">Monto Meta Total (soles)</label>
               <div class="input-currency-wrap">
                 <span class="currency-prefix">${currency}</span>
                 <input type="number" id="setting-goal" class="form-control" min="0" step="100" value="${metrics.savingsGoal}">
@@ -213,11 +206,10 @@ function attachSavingsHandlers() {
   if (goalForm) {
     goalForm.onsubmit = (e) => {
       e.preventDefault();
-      const currency = document.getElementById('setting-currency').value;
       const savingsGoal = parseFloat(document.getElementById('setting-goal').value) || 0;
-      store.updateSettings({ currency, savingsGoal });
+      store.updateSettings({ savingsGoal });
       renderSavingsView();
-      showToast('Meta y moneda actualizadas correctamente');
+      showToast('Meta financiera actualizada correctamente');
     };
   }
 
@@ -252,7 +244,7 @@ export function openSavingModal(savingId = null) {
   editingSavingId = savingId;
   const state = store.getState();
   const existingSaving = savingId ? state.savings.find(s => s.id === savingId) : null;
-  const currency = state.settings.currency || 'S/';
+  const currency = 'S/';
 
   const modalOverlay = document.getElementById('global-modal-overlay');
   const modalContent = document.getElementById('global-modal-body');
