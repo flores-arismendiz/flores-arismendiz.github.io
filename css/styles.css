@@ -6909,12 +6909,12 @@ body.wedding-web-active {
   flex-direction: column;
   align-items: center;
   gap: 0;
-  margin: 0.55rem 0 0.35rem;
+  margin: 0.25rem 0;
   color: #4c382b;
   font-family: var(--font-romance-serif);
-  font-size: 2.9rem;
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
   font-weight: 400;
-  line-height: 1.02;
+  line-height: 0.98;
 }
 
 .envelope-name-amp {
@@ -6950,12 +6950,6 @@ body.wedding-web-active {
   color: #634d3c;
   font-size: 1rem;
   font-weight: 500;
-}
-
-.envelope-card-personalized .envelope-couple-script {
-  font-size: clamp(1.25rem, 2.5vw, 2rem);
-  line-height: 0.98;
-  margin: 0.25rem 0;
 }
 
 .envelope-card-personalized .envelope-filigree-divider {
@@ -7410,10 +7404,6 @@ body.wedding-web-active {
     width: 100%;
   }
 
-  .envelope-card-personalized .envelope-couple-script {
-    font-size: clamp(0.95rem, 4vw, 1.2rem);
-  }
-
   .envelope-card-personalized .envelope-filigree-divider {
     margin: 0 auto;
   }
@@ -7468,7 +7458,7 @@ body.wedding-web-active {
 
   .envelope-couple-script {
     margin: 0.1rem 0;
-    font-size: clamp(1rem, 4.5vw, 1.3rem);
+    font-size: clamp(0.95rem, 4vw, 1.2rem);
     line-height: 0.94;
   }
 
